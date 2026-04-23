@@ -3,27 +3,100 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Yüklə</title>
+  <title>Para.man | Yüklə</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="auth.js"></script>
 </head>
-<body class="bg-slate-100 min-h-screen p-4">
-  <div class="max-w-md mx-auto bg-white rounded-2xl p-4 shadow">
-    <a href="home.html" class="underline text-sm">← Geri</a>
-    <h1 class="text-xl font-bold mt-2">Yükləmə</h1>
-    <input id="amount" type="number" value="10" class="w-full h-11 border rounded px-3 mt-3" />
-    <button onclick="goRecharge()" class="w-full h-11 mt-3 rounded bg-cyan-600 text-white">İndi yüklə</button>
+<body class="bg-[#e7e7e7] min-h-screen font-sans">
+  <div class="max-w-[414px] mx-auto min-h-screen bg-[#f0f0f0]">
+    <!-- Top -->
+    <div class="bg-gradient-to-r from-cyan-500 to-blue-500 h-36 px-5 pt-6 text-white">
+      <a href="home.html" class="text-2xl inline-block">‹</a>
+      <div class="mt-1">
+        <div class="text-2xl font-bold leading-none" id="balanceText">₼0.00</div>
+        <div class="text-sm opacity-95">Mənim balansım</div>
+      </div>
+    </div>
+
+    <!-- Content -->
+    <div class="-mt-6 bg-[#f4f4f4] rounded-t-3xl px-4 pt-6 pb-6">
+      <h2 class="text-2xl font-bold text-[#2f5e86] mb-3">Yükləmə məbləği</h2>
+
+      <input
+        id="amount"
+        type="number"
+        value="50"
+        class="w-full h-14 rounded-2xl border-2 border-sky-500 px-5 text-2xl font-medium text-[#1f2d3d] outline-none bg-transparent mb-4"
+      />
+
+      <div class="grid grid-cols-3 gap-3 mb-6">
+        <button onclick="setAmount(50)" class="h-12 rounded-xl bg-[#e6ecf1] font-semibold text-[#2f5e86]">50</button>
+        <button onclick="setAmount(100)" class="h-12 rounded-xl bg-[#e6ecf1] font-semibold text-[#2f5e86]">100</button>
+        <button onclick="setAmount(200)" class="h-12 rounded-xl bg-[#e6ecf1] font-semibold text-[#2f5e86]">200</button>
+        <button onclick="setAmount(500)" class="h-12 rounded-xl bg-[#e6ecf1] font-semibold text-[#2f5e86]">500</button>
+        <button onclick="setAmount(1000)" class="h-12 rounded-xl bg-[#e6ecf1] font-semibold text-[#2f5e86]">1000</button>
+        <button onclick="setAmount(2000)" class="h-12 rounded-xl bg-[#e6ecf1] font-semibold text-[#2f5e86]">2000</button>
+      </div>
+
+      <h3 class="text-2xl font-bold text-[#2f5e86] mb-3">Yükləmə kanalı</h3>
+
+      <label class="h-14 rounded-2xl border-2 border-sky-500 px-5 flex items-center justify-between bg-[#dce5ee] mb-3 cursor-pointer">
+        <span class="text-xl text-[#495463]">Ödəniş-1</span>
+        <input type="radio" name="pay" checked class="w-5 h-5 accent-sky-500" />
+      </label>
+
+      <label class="h-14 rounded-2xl border border-gray-300 px-5 flex items-center justify-between bg-[#f6f6f6] mb-5 cursor-pointer">
+        <span class="text-xl text-[#495463]">Ödəniş-2</span>
+        <input type="radio" name="pay" class="w-5 h-5 accent-sky-500" />
+      </label>
+
+      <button
+        onclick="payNow()"
+        class="w-full h-14 rounded-full bg-gradient-to-r from-cyan-500 to-blue-600 text-white text-2xl font-bold mb-5"
+      >
+        İndi yüklə
+      </button>
+
+      <div class="rounded-2xl border border-dashed border-slate-300 bg-[#f2f2f2] p-4 text-[#2f3c48] leading-7 text-sm">
+        <p class="font-semibold mb-2">Balans artırma təlimatları:</p>
+        <p class="mb-2">1. Minimum yükləmə məbləği: ₼10.</p>
+        <p class="mb-2">2. Ödəniş təsdiqləndikdən sonra balans artırılır.</p>
+        <p>3. Problem olarsa xidmət bölməsi ilə əlaqə saxlayın.</p>
+      </div>
+    </div>
   </div>
+
   <script>
-    async function goRecharge() {
+    function setAmount(v) {
+      document.getElementById("amount").value = v;
+    }
+
+    async function loadMeForBalance() {
+      const s = getSession();
+      if (!s?.token) {
+        location.href = "index.html";
+        return;
+      }
+
+      const me = await fetchMe();
+      document.getElementById("balanceText").textContent = `₼${Number(me.balance).toFixed(2)}`;
+    }
+
+    async function payNow() {
       try {
-        const bal = await rechargeBalance(Number(document.getElementById("amount").value || 0));
-        alert("Uğurlu. Yeni balans: ₼" + Number(bal).toFixed(2));
+        const amount = Number(document.getElementById("amount").value || 0);
+        const newBal = await rechargeBalance(amount);
+        alert(`Uğurlu! Balansa ₼${amount.toFixed(2)} əlavə olundu.\nYeni balans: ₼${Number(newBal).toFixed(2)}`);
         location.href = "home.html";
       } catch (e) {
         alert(e.message);
       }
     }
+
+    loadMeForBalance().catch((e) => {
+      alert(e.message);
+      location.href = "index.html";
+    });
   </script>
 </body>
 </html>
