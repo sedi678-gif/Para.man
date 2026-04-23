@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Yüklə</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="auth.js"></script>
+</head>
+<body class="bg-slate-100 min-h-screen p-4">
+  <div class="max-w-md mx-auto bg-white rounded-2xl p-4 shadow">
+    <a href="home.html" class="underline text-sm">← Geri</a>
+    <h1 class="text-xl font-bold mt-2">Yükləmə</h1>
+    <input id="amount" type="number" value="10" class="w-full h-11 border rounded px-3 mt-3" />
+    <button onclick="goRecharge()" class="w-full h-11 mt-3 rounded bg-cyan-600 text-white">İndi yüklə</button>
+  </div>
+  <script>
+    async function goRecharge() {
+      try {
+        const bal = await rechargeBalance(Number(document.getElementById("amount").value || 0));
+        alert("Uğurlu. Yeni balans: ₼" + Number(bal).toFixed(2));
+        location.href = "home.html";
+      } catch (e) {
+        alert(e.message);
+      }
+    }
+  </script>
+</body>
+</html>

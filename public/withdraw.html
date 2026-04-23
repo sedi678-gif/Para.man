@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Çıxar</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="auth.js"></script>
+</head>
+<body class="bg-slate-100 min-h-screen p-4">
+  <div class="max-w-md mx-auto bg-white rounded-2xl p-4 shadow">
+    <a href="home.html" class="underline text-sm">← Geri</a>
+    <h1 class="text-xl font-bold mt-2">Çıxarış</h1>
+    <input id="amount" type="number" value="6" class="w-full h-11 border rounded px-3 mt-3" />
+    <button onclick="goWithdraw()" class="w-full h-11 mt-3 rounded bg-emerald-600 text-white">Çıxar</button>
+  </div>
+  <script>
+    async function goWithdraw() {
+      try {
+        const bal = await withdrawBalance(Number(document.getElementById("amount").value || 0));
+        alert("Uğurlu. Yeni balans: ₼" + Number(bal).toFixed(2));
+        location.href = "home.html";
+      } catch (e) {
+        alert(e.message);
+      }
+    }
+  </script>
+</body>
+</html>

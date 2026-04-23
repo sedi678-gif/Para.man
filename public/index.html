@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Para.man | Login</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="auth.js"></script>
+</head>
+<body class="min-h-screen bg-slate-900 flex items-center justify-center p-4 text-white">
+  <div class="w-full max-w-md rounded-2xl p-6 bg-slate-800/80">
+    <h1 class="text-2xl font-bold mb-4">Daxil ol</h1>
+    <p id="msg" class="text-red-300 text-sm mb-3 min-h-[20px]"></p>
+    <form onsubmit="onLogin(event)" class="space-y-3">
+      <input id="phone" class="w-full h-11 rounded-lg px-3 text-black" placeholder="+994501234567" />
+      <input id="password" type="password" class="w-full h-11 rounded-lg px-3 text-black" placeholder="Şifrə" />
+      <button class="w-full h-11 rounded-lg bg-yellow-400 text-black font-semibold">Daxil ol</button>
+    </form>
+    <p class="mt-4 text-sm">Hesabın yoxdur? <a href="register.html" class="underline text-yellow-300">Qeydiyyat</a></p>
+  </div>
+  <script>
+    async function onLogin(e) {
+      e.preventDefault();
+      const msg = document.getElementById("msg");
+      msg.textContent = "";
+      try {
+        await loginUser({
+          phone: document.getElementById("phone").value.trim(),
+          password: document.getElementById("password").value
+        });
+        location.href = "home.html";
+      } catch (err) {
+        msg.textContent = err.message;
+      }
+    }
+  </script>
+</body>
+</html>
