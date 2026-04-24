@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Para.man | Çıxar</title>
+  <title>Para.man | Çıxarış</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="auth.js"></script>
 </head>
@@ -18,7 +18,8 @@
       Çıxar
     </button>
 
-    <a href="my.html" class="block text-center text-blue-600">Geri</a>
+    <a href="withdraw-history.html" class="block text-center text-blue-600 mb-2">Çıxarış qeydləri</a>
+    <a href="my.html" class="block text-center text-slate-600">Geri</a>
   </main>
 
   <script>
@@ -49,21 +50,16 @@
         if (amount <= 0) throw new Error("Düzgün məbləğ daxil edin");
 
         const newBal = await withdrawBalance(amount);
-
-        // Çıxarış qeydi əlavə et
         saveWithdrawHistory(amount, "Gözləyir");
 
         alert(`Çıxarış sorğusu yaradıldı: ${money(amount)}\nYeni balans: ${money(newBal)}`);
-        location.href = "balance-details.html";
+        location.href = "withdraw-history.html";
       } catch (e) {
         alert(e.message || "Xəta baş verdi");
       }
     });
 
-    init().catch((e) => {
-      alert(e.message || "Xəta");
-      location.href = "index.html";
-    });
+    init().catch(() => location.href = "index.html");
   </script>
 </body>
 </html>

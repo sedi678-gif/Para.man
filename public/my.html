@@ -1,25 +1,134 @@
-<section class="px-4 mt-4 space-y-3">
-  <a href="bank-card.html" class="block bg-yellow-400 rounded-2xl px-4 py-4 text-white font-bold text-2xl shadow">
-    💳&nbsp; Bank kartı <span class="float-right">&gt;</span>
-  </a>
+<!DOCTYPE html>
+<html lang="az">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Para.man | Mənim</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="auth.js"></script>
+  <style>
+    body { padding-bottom: 82px; background: #f1f2f6; }
+    .bottom-nav a.active { color: #16a34a; font-weight: 700; }
+    .glass {
+      background: rgba(0, 0, 0, 0.2);
+      backdrop-filter: blur(3px);
+      -webkit-backdrop-filter: blur(3px);
+    }
+  </style>
+</head>
+<body>
+  <main class="max-w-md mx-auto pb-4">
+    <section class="relative">
+      <img src="https://images.unsplash.com/photo-1501139083538-0139583c060f?auto=format&fit=crop&w=1200&q=60"
+           class="w-full h-44 object-cover" alt="bg" />
+    </section>
 
-  <a href="recharge-history.html" class="block bg-yellow-400 rounded-2xl px-4 py-4 text-white font-bold text-2xl shadow">
-    🧾&nbsp; Yükləmə qeydi <span class="float-right">&gt;</span>
-  </a>
+    <section class="-mt-10 px-4">
+      <div class="bg-gradient-to-r from-red-600 to-orange-500 rounded-2xl p-4 shadow-xl text-white">
+        <div class="glass rounded-xl px-4 py-3 flex items-center justify-between">
+          <div id="phoneText" class="font-bold text-2xl">+994 000110000</div>
+          <div class="text-xl">🧑‍💼</div>
+        </div>
 
-  <a href="balance-details.html" class="block bg-yellow-400 rounded-2xl px-4 py-4 text-white font-bold text-2xl shadow">
-    📈&nbsp; Balans detalları <span class="float-right">&gt;</span>
-  </a>
+        <div class="grid grid-cols-3 gap-2 text-center mt-4">
+          <div>
+            <div id="balText" class="text-4xl font-extrabold">₼0</div>
+            <div class="text-sm opacity-90">Mənim balansım</div>
+          </div>
+          <div>
+            <div id="totalRecharge" class="text-4xl font-extrabold">₼0</div>
+            <div class="text-sm opacity-90">Yüklə</div>
+          </div>
+          <div>
+            <div id="totalWithdraw" class="text-4xl font-extrabold">₼0</div>
+            <div class="text-sm opacity-90">Çıxar</div>
+          </div>
+        </div>
+      </div>
+    </section>
 
-  <a href="withdraw-history.html" class="block bg-yellow-400 rounded-2xl px-4 py-4 text-white font-bold text-2xl shadow">
-    ⬆️&nbsp; Çıxarış qeydləri <span class="float-right">&gt;</span>
-  </a>
+    <section class="px-4 mt-4">
+      <div class="relative rounded-2xl overflow-hidden shadow-lg">
+        <img src="https://images.unsplash.com/photo-1563013544-824ae1b704d3?auto=format&fit=crop&w=1200&q=60"
+             class="w-full h-36 object-cover" alt="money"/>
+        <div class="absolute inset-0 bg-red-900/50"></div>
+        <div class="absolute inset-0 p-3 text-white">
+          <h3 class="text-center text-3xl font-extrabold mb-2">Yüklə & Çıxar</h3>
+          <div class="grid grid-cols-2 gap-2 text-center">
+            <a href="recharge.html" class="py-2">
+              <div class="text-4xl">🧾</div><div class="text-2xl font-bold">Yüklə</div>
+            </a>
+            <a href="withdraw.html" class="py-2">
+              <div class="text-4xl">💵</div><div class="text-2xl font-bold">Çıxar</div>
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
 
-  <a href="service.html" class="block bg-yellow-400 rounded-2xl px-4 py-4 text-white font-bold text-2xl shadow">
-    🎯&nbsp; Xidmət mərkəzi <span class="float-right">&gt;</span>
-  </a>
+    <section class="px-4 mt-4 space-y-3">
+      <a href="bank-card.html" class="block bg-yellow-400 rounded-2xl px-4 py-4 text-white font-bold text-2xl shadow">
+        💳 Bank kartı <span class="float-right">&gt;</span>
+      </a>
 
-  <button id="logoutBtn" class="w-full bg-red-500 rounded-2xl px-4 py-4 text-left text-white font-bold text-2xl shadow">
-    ⎋&nbsp; Çıxış <span class="float-right">&gt;</span>
-  </button>
-</section>
+      <a href="recharge-history.html" class="block bg-yellow-400 rounded-2xl px-4 py-4 text-white font-bold text-2xl shadow">
+        🧾 Yükləmə qeydi <span class="float-right">&gt;</span>
+      </a>
+
+      <a href="balance-details.html" class="block bg-yellow-400 rounded-2xl px-4 py-4 text-white font-bold text-2xl shadow">
+        📈 Balans detalları <span class="float-right">&gt;</span>
+      </a>
+
+      <a href="withdraw-history.html" class="block bg-yellow-400 rounded-2xl px-4 py-4 text-white font-bold text-2xl shadow">
+        ⬆️ Çıxarış qeydləri <span class="float-right">&gt;</span>
+      </a>
+
+      <a href="service.html" class="block bg-yellow-400 rounded-2xl px-4 py-4 text-white font-bold text-2xl shadow">
+        🎯 Xidmət mərkəzi <span class="float-right">&gt;</span>
+      </a>
+
+      <button id="logoutBtn" class="w-full bg-red-500 rounded-2xl px-4 py-4 text-left text-white font-bold text-2xl shadow">
+        ⎋ Çıxış <span class="float-right">&gt;</span>
+      </button>
+    </section>
+  </main>
+
+  <nav class="bottom-nav fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 flex justify-around py-3 z-50">
+    <a href="home.html">🏠<div class="text-xs">Ana səhifə</div></a>
+    <a href="products.html">🛍️<div class="text-xs">Məhsullarım</div></a>
+    <a href="treasury.html">🏛️<div class="text-xs">Xəzinə</div></a>
+    <a href="share.html">📣<div class="text-xs">Paylaş</div></a>
+    <a href="my.html" class="active">👤<div class="text-xs">Mənim</div></a>
+  </nav>
+
+  <script>
+    function money(v){ return "₼" + Number(v || 0).toFixed(2); }
+
+    function readArr(key) {
+      try { return JSON.parse(localStorage.getItem(key) || "[]"); } catch { return []; }
+    }
+
+    async function initMyPage() {
+      const s = getSession();
+      if (!s?.token) return location.href = "index.html";
+
+      const me = await fetchMe();
+      document.getElementById("phoneText").textContent = me.phone || "+994 000110000";
+      document.getElementById("balText").textContent = money(me.balance || 0);
+
+      const rechargeSum = readArr("pm_recharge_history").reduce((a,b)=>a + Number(b.amount||0), 0);
+      const withdrawSum = readArr("pm_withdraw_history").reduce((a,b)=>a + Number(b.amount||0), 0);
+
+      document.getElementById("totalRecharge").textContent = money(rechargeSum);
+      document.getElementById("totalWithdraw").textContent = money(withdrawSum);
+    }
+
+    document.getElementById("logoutBtn").addEventListener("click", () => {
+      clearSession();
+      location.href = "index.html";
+    });
+
+    initMyPage().catch(() => location.href = "index.html");
+  </script>
+</body>
+</html>
