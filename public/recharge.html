@@ -3,73 +3,78 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Para.man | Yüklə</title>
+  <title>Balans artırma</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="auth.js"></script>
   <style>
-    body { padding-bottom: 78px; background: #f2f3f7; }
-    .bottom-nav a.active { color: #16a34a; font-weight: 700; }
+    body { background: #f3f4f6; }
   </style>
 </head>
 <body>
-  <main class="max-w-md mx-auto px-4 pt-4">
-    <h1 class="text-center text-3xl font-extrabold text-green-700 mb-4">Balansı artır</h1>
+  <main class="max-w-md mx-auto min-h-screen">
+    <!-- Top -->
+    <section class="bg-gradient-to-r from-cyan-500 to-blue-500 text-white px-4 pt-5 pb-10">
+      <a href="my.html" class="text-3xl leading-none">←</a>
+      <div class="mt-2">
+        <div id="balanceText" class="text-5xl font-extrabold">₼0</div>
+        <div class="text-lg opacity-95">Mənim balansım</div>
+      </div>
+    </section>
 
-    <section class="bg-white rounded-2xl shadow p-4 mb-4">
-      <p class="text-slate-600 mb-2">Mövcud balans:</p>
-      <p id="balanceText" class="text-2xl font-bold mb-4">₼0.00</p>
+    <!-- Card -->
+    <section class="-mt-6 bg-white rounded-t-3xl px-4 pt-5 pb-6 shadow">
+      <h2 class="text-4xl font-extrabold text-slate-700 mb-3">Yükləmə məbləği</h2>
 
-      <label class="block text-sm mb-2">Məbləğ</label>
       <input
         id="amount"
         type="number"
-        min="1"
-        class="w-full border rounded-xl p-3 mb-4"
-        placeholder="Məs: 10"
+        min="10"
+        value="10"
+        class="w-full h-14 rounded-2xl border-2 border-sky-500 px-4 text-3xl font-bold mb-3"
       />
 
-      <div class="grid grid-cols-4 gap-2 mb-4">
-        <button class="q bg-slate-200 rounded-lg py-2" data-v="10">10</button>
-        <button class="q bg-slate-200 rounded-lg py-2" data-v="20">20</button>
-        <button class="q bg-slate-200 rounded-lg py-2" data-v="50">50</button>
-        <button class="q bg-slate-200 rounded-lg py-2" data-v="100">100</button>
+      <div class="grid grid-cols-3 gap-2 mb-5">
+        <button class="q h-12 rounded-xl bg-slate-100 font-bold text-xl" data-v="10">10</button>
+        <button class="q h-12 rounded-xl bg-slate-100 font-bold text-xl" data-v="15">15</button>
+        <button class="q h-12 rounded-xl bg-slate-100 font-bold text-xl" data-v="40">40</button>
+        <button class="q h-12 rounded-xl bg-slate-100 font-bold text-xl" data-v="90">90</button>
+        <button class="q h-12 rounded-xl bg-slate-100 font-bold text-xl" data-v="180">180</button>
+        <button class="q h-12 rounded-xl bg-slate-100 font-bold text-xl" data-v="360">360</button>
+        <button class="q h-12 rounded-xl bg-slate-100 font-bold text-xl" data-v="720">720</button>
+        <button class="q h-12 rounded-xl bg-slate-100 font-bold text-xl" data-v="1480">1480</button>
+        <button class="q h-12 rounded-xl bg-slate-100 font-bold text-xl" data-v="2880">2880</button>
       </div>
 
-      <button
-        id="payBtn"
-        class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-xl"
-      >
+      <h3 class="text-4xl font-extrabold text-slate-700 mb-3">Yükləmə kanalı</h3>
+
+      <label class="h-14 rounded-2xl border-2 border-sky-500 px-4 flex items-center justify-between bg-slate-50 mb-2 cursor-pointer">
+        <span class="text-3xl text-slate-700">Ödəniş-1</span>
+        <input type="radio" name="pay_channel" value="payment-1" checked class="w-5 h-5 accent-sky-500" />
+      </label>
+
+      <label class="h-14 rounded-2xl border border-slate-300 px-4 flex items-center justify-between bg-white mb-4 cursor-pointer">
+        <span class="text-3xl text-slate-700">Ödəniş-2</span>
+        <input type="radio" name="pay_channel" value="payment-2" class="w-5 h-5 accent-sky-500" />
+      </label>
+
+      <button id="payBtn" class="w-full h-14 rounded-full bg-gradient-to-r from-cyan-500 to-blue-600 text-white text-3xl font-extrabold mb-4">
         İndi yüklə
       </button>
+
+      <div class="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-4 text-slate-700 leading-7 text-sm">
+        <p class="font-bold mb-2">Balans artırma təlimatları:</p>
+        <p class="mb-2">1. Balans artırma saatları: saat 10:00-dan 22:00-dək.</p>
+        <p class="mb-2">2. Minimum məbləğ artırma: ₼10.</p>
+        <p class="mb-2">3. Çatdırılma vaxtı: vəsaitlər adətən 2-30 dəqiqəyə ərzində çatır.</p>
+        <p>4. Uğurlu ödənişdən sonra ödəniş qəbzini dərhal yükləyin.</p>
+      </div>
     </section>
   </main>
 
-  <nav class="bottom-nav fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 flex justify-around py-3 z-50">
-    <a href="home.html">🏠<div class="text-xs">Ana səhifə</div></a>
-    <a href="products.html">🛍️<div class="text-xs">Məhsullarım</div></a>
-    <a href="treasury.html">🏛️<div class="text-xs">Xəzinə</div></a>
-    <a href="share.html">📣<div class="text-xs">Paylaş</div></a>
-    <a href="my.html" class="active">👤<div class="text-xs">Mənim</div></a>
-  </nav>
-
   <script>
-    function money(v) {
-      return "₼" + Number(v || 0).toFixed(2);
-    }
+    function money(v) { return "₼" + Number(v || 0).toFixed(2); }
 
-    function saveRechargeHistory(amount, status = "Gözləyir") {
-      const key = "pm_recharge_history";
-      let arr = [];
-      try { arr = JSON.parse(localStorage.getItem(key) || "[]"); } catch {}
-      arr.unshift({
-        amount: Number(amount || 0),
-        status,
-        createdAt: new Date().toISOString()
-      });
-      localStorage.setItem(key, JSON.stringify(arr.slice(0, 100)));
-    }
-
-    document.querySelectorAll(".q").forEach(btn => {
+    document.querySelectorAll(".q").forEach((btn) => {
       btn.addEventListener("click", () => {
         document.getElementById("amount").value = btn.dataset.v;
       });
@@ -77,29 +82,27 @@
 
     async function init() {
       const s = getSession();
-      if (!s?.token) {
-        location.href = "index.html";
-        return;
-      }
+      if (!s?.token) return location.href = "index.html";
       const me = await fetchMe();
-      document.getElementById("balanceText").textContent = money(me.balance);
+      document.getElementById("balanceText").textContent = money(me.balance || 0);
     }
 
-    document.getElementById("payBtn").addEventListener("click", async () => {
-      try {
-        const amount = Number(document.getElementById("amount").value || 0);
-        if (amount <= 0) throw new Error("Düzgün məbləğ daxil edin");
+    document.getElementById("payBtn").addEventListener("click", () => {
+      const amount = Number(document.getElementById("amount").value || 0);
+      const channel = document.querySelector("input[name='pay_channel']:checked")?.value || "payment-1";
 
-        const newBalance = await rechargeBalance(amount);
-
-        // Qeyd əlavə et
-        saveRechargeHistory(amount, "Gözləyir");
-
-        alert(`Yükləmə sorğusu yaradıldı: ${money(amount)}\nYeni balans: ${money(newBalance)}`);
-        location.href = "recharge-history.html";
-      } catch (e) {
-        alert(e.message || "Xəta baş verdi");
+      if (amount < 10) {
+        alert("Minimum məbləğ ₼10 olmalıdır");
+        return;
       }
+
+      localStorage.setItem("pm_pending_recharge", JSON.stringify({
+        amount,
+        channel,
+        createdAt: new Date().toISOString()
+      }));
+
+      window.location.href = "recharge-confirm.html";
     });
 
     init().catch((e) => {
