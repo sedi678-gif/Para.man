@@ -245,6 +245,37 @@ exports.handler = async (event) => {
       return json(200, { balance: newBal });
     }
 
+    // USER: recharge request create (admin approval lazimdir)
+    if (method === "POST" && path === "/recharge/request") {
+      const authUser = parseToken(event);
+      const amount = Number(body.amount || 0);
+      const paidAmount = Number(body.paidAmount || 0);
+      const channel = String(body.channel || "").trim();
+      const receiptUrl = String(body.receiptUrl || "").trim();
+
+      if (amount < 10) return json(400, { error: "Minimum yukleme 10 AZN" });
+      if (paidAmount <= 0) return json(400, { error: "Odenilen mebleg duzgun deyil" });
+      if (Number(amount.toFixed(2)) !== Number(paidAmount.toFixed(2))) {
+        return json(400, { error: "Secilen mebleg ile qebzdeki mebleg eyni olmalidir" });
+      }
+      if (!channel) return json(400, { error: "Kanal secilmeyib" });
+      if (!receiptUrl) return json(400, { error: "Qebz sekli yoxdur" });
+
+      const { error: insErr } = await supabase
+        .from("recharge_requests")
+        .insert({
+          user_id: authUser.uid,
+          amount,
+          paid_amount: paidAmount,
+          channel,
+          receipt_url: receiptUrl,
+          status: "pending"
+        });
+
+      if (insErr) return json(500, { error: "Sorqu yaradilmadi" });
+      return json(200, { ok: true, status: "pending" });
+    }
+
     // TREASURE PROMO REDEEM
     if (method === "POST" && path === "/treasure/redeem") {
       const authUser = parseToken(event);
@@ -326,6 +357,80 @@ exports.handler = async (event) => {
         .order("id", { ascending: false });
 
       return json(200, { users: users || [] });
+    }
+
+    // ADMIN: list recharge requests
+    if (method === "GET" && path === "/admin/recharge-requests") {
+      const authUser = parseToken(event);
+      if (authUser.role !== "admin") return json(403, { error: "Yalniz admin" });
+
+      const { data, error } = await supabase
+        .from("recharge_requests")
+        .select("*")
+        .order("id", { ascending: false });
+
+      if (error) return json(500, { error: "Sorqular getirilemedi" });
+      return json(200, { requests: data || [] });
+    }
+
+    // ADMIN: approve/reject recharge request
+    if (method === "PATCH" && path.startsWith("/admin/recharge-requests/")) {
+      const authUser = parseToken(event);
+      if (authUser.role !== "admin") return json(403, { error: "Yalniz admin" });
+
+      const id = Number(path.replace("/admin/recharge-requests/", ""));
+      const action = String(body.action || "").trim();
+      const note = String(body.note || "").trim();
+
+      if (!id || !["approve", "reject"].includes(action)) {
+        return json(400, { error: "Yanlis parametr" });
+      }
+
+      const { data: reqRow } = await supabase
+        .from("recharge_requests")
+        .select("*")
+        .eq("id", id)
+        .maybeSingle();
+
+      if (!reqRow) return json(404, { error: "Sorqu tapilmadi" });
+      if (reqRow.status !== "pending") return json(400, { error: "Sorqu artiq baxilib" });
+
+      if (action === "approve") {
+        const { data: u } = await supabase
+          .from("users")
+          .select("balance")
+          .eq("user_id", reqRow.user_id)
+          .maybeSingle();
+
+        if (!u) return json(404, { error: "User tapilmadi" });
+
+        const newBal = Number(u.balance || 0) + Number(reqRow.amount || 0);
+        await supabase.from("users").update({ balance: newBal }).eq("user_id", reqRow.user_id);
+
+        await supabase
+          .from("recharge_requests")
+          .update({
+            status: "approved",
+            reviewed_at: new Date().toISOString(),
+            reviewed_by: "ADMIN",
+            note
+          })
+          .eq("id", id);
+
+        return json(200, { ok: true, status: "approved", balance: newBal });
+      }
+
+      await supabase
+        .from("recharge_requests")
+        .update({
+          status: "rejected",
+          reviewed_at: new Date().toISOString(),
+          reviewed_by: "ADMIN",
+          note
+        })
+        .eq("id", id);
+
+      return json(200, { ok: true, status: "rejected" });
     }
 
     // ADMIN BAN/UNBAN

@@ -3,105 +3,108 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Para.man | Admin</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+  <title>Admin panel</title>
   <script src="auth.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-slate-100 min-h-screen p-4">
-  <div class="max-w-6xl mx-auto">
-    <div id="loginBox" class="bg-white rounded-2xl p-4 shadow max-w-md mx-auto">
-      <h1 class="text-xl font-bold mb-2">Admin giriş</h1>
-      <p id="msg" class="text-red-500 text-sm min-h-[20px]"></p>
-      <input id="phone" class="w-full h-10 border rounded px-3 mb-2" placeholder="Admin telefon" />
-      <input id="pin" type="password" class="w-full h-10 border rounded px-3 mb-2" placeholder="Admin PIN" />
-      <button onclick="doLogin()" class="w-full h-10 rounded bg-black text-white">Daxil ol</button>
-    </div>
-
-    <div id="panel" class="hidden">
-      <div class="flex justify-between items-center mb-3">
-        <h2 class="text-xl font-bold">İstifadəçilər</h2>
-        <div class="flex gap-2">
-          <button onclick="loadUsers()" class="px-3 py-2 rounded bg-emerald-600 text-white text-sm">Yenilə</button>
-          <button onclick="exitAdmin()" class="px-3 py-2 rounded bg-slate-600 text-white text-sm">Çıxış</button>
-        </div>
+<body class="bg-slate-100 p-4">
+  <main class="max-w-5xl mx-auto space-y-4">
+    <section class="bg-white p-4 rounded-xl shadow">
+      <h1 class="text-2xl font-bold mb-3">Admin giriş</h1>
+      <div class="grid md:grid-cols-3 gap-2">
+        <input id="adminPhone" class="border rounded p-2" placeholder="+994501112233" />
+        <input id="adminPin" class="border rounded p-2" placeholder="PIN" />
+        <button id="adminLoginBtn" class="bg-blue-600 text-white rounded p-2">Daxil ol</button>
       </div>
+    </section>
 
-      <div class="overflow-auto bg-white rounded-2xl shadow">
-        <table class="min-w-full text-sm">
-          <thead class="bg-slate-800 text-white">
-            <tr>
-              <th class="p-2 text-left">ID</th>
-              <th class="p-2 text-left">Ad</th>
-              <th class="p-2 text-left">Telefon</th>
-              <th class="p-2 text-left">Balans</th>
-              <th class="p-2 text-left">Ref kod</th>
-              <th class="p-2 text-left">Dəvət edən</th>
-              <th class="p-2 text-left">IP</th>
-              <th class="p-2 text-left">Status</th>
-              <th class="p-2 text-left">Əməliyyat</th>
-            </tr>
-          </thead>
-          <tbody id="rows"></tbody>
-        </table>
+    <section class="bg-white p-4 rounded-xl shadow">
+      <div class="flex items-center justify-between mb-3">
+        <h2 class="text-xl font-bold">Yükləmə sorğuları</h2>
+        <button id="refreshBtn" class="bg-slate-700 text-white rounded px-3 py-1">Yenilə</button>
       </div>
-    </div>
-  </div>
+      <div id="rechargeRequests" class="space-y-3"></div>
+    </section>
+  </main>
 
   <script>
-    function esc(v) { return String(v ?? "").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
-
-    async function doLogin() {
-      const msg = document.getElementById("msg");
-      msg.textContent = "";
+    async function adminLoginClick() {
       try {
-        await adminLogin(
-          document.getElementById("phone").value.trim(),
-          document.getElementById("pin").value.trim()
-        );
-        document.getElementById("loginBox").classList.add("hidden");
-        document.getElementById("panel").classList.remove("hidden");
-        await loadUsers();
+        const phone = document.getElementById("adminPhone").value.trim();
+        const pin = document.getElementById("adminPin").value.trim();
+        await adminLogin(phone, pin);
+        alert("Admin daxil oldu");
+        loadRechargeRequests();
       } catch (e) {
-        msg.textContent = e.message;
+        alert(e.message || "Xeta");
       }
     }
 
-    function exitAdmin() {
-      clearAdminToken();
-      location.reload();
+    async function loadRechargeRequests() {
+      try {
+        const token = getAdminToken();
+        if (!token) return;
+
+        const res = await fetch("/.netlify/functions/api/admin/recharge-requests", {
+          headers: { Authorization: "Bearer " + token }
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.error || "Sorqular gelmedi");
+
+        const box = document.getElementById("rechargeRequests");
+        const rows = data.requests || [];
+
+        if (!rows.length) {
+          box.innerHTML = `<div class="text-slate-500">Sorğu yoxdur</div>`;
+          return;
+        }
+
+        box.innerHTML = rows.map(r => `
+          <div class="border rounded-xl p-3 bg-slate-50">
+            <div><b>ID:</b> ${r.id}</div>
+            <div><b>User:</b> ${r.user_id}</div>
+            <div><b>Seçilən məbləğ:</b> ${r.amount}</div>
+            <div><b>Qəbzdə məbləğ:</b> ${r.paid_amount}</div>
+            <div><b>Kanal:</b> ${r.channel}</div>
+            <div><b>Status:</b> ${r.status}</div>
+            <div class="mt-2">
+              <img src="${r.receipt_url}" alt="receipt" class="max-h-52 rounded border" />
+            </div>
+            <div class="mt-2 flex gap-2 ${r.status === "pending" ? "" : "hidden"}">
+              <button onclick="reviewRecharge(${r.id}, 'approve')" class="bg-green-600 text-white rounded px-3 py-1">Approve</button>
+              <button onclick="reviewRecharge(${r.id}, 'reject')" class="bg-red-600 text-white rounded px-3 py-1">Reject</button>
+            </div>
+          </div>
+        `).join("");
+      } catch (e) {
+        alert(e.message || "Xeta");
+      }
     }
 
-    async function loadUsers() {
-      const data = await adminGetUsers();
-      const tbody = document.getElementById("rows");
-      tbody.innerHTML = "";
-      (data.users || []).forEach(u => {
-        const tr = document.createElement("tr");
-        tr.className = "border-b";
-        tr.innerHTML = `
-          <td class="p-2">${esc(u.user_id)}</td>
-          <td class="p-2">${esc(u.name)}</td>
-          <td class="p-2">${esc(u.phone)}</td>
-          <td class="p-2">₼${Number(u.balance || 0).toFixed(2)}</td>
-          <td class="p-2">${esc(u.referral_code)}</td>
-          <td class="p-2">${esc(u.referred_by_code || "-")}</td>
-          <td class="p-2">${esc(u.register_ip || "-")}</td>
-          <td class="p-2">${u.is_banned ? "BAN" : "Aktiv"}</td>
-          <td class="p-2">
-            <button class="px-2 py-1 rounded text-white ${u.is_banned ? "bg-emerald-600" : "bg-red-600"}"
-              onclick="setBan('${esc(u.user_id)}', ${u.is_banned ? "false" : "true"})">
-              ${u.is_banned ? "Banı aç" : "Ban"}
-            </button>
-          </td>
-        `;
-        tbody.appendChild(tr);
-      });
+    async function reviewRecharge(id, action) {
+      try {
+        const token = getAdminToken();
+        const res = await fetch(`/.netlify/functions/api/admin/recharge-requests/${id}`, {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: "Bearer " + token
+          },
+          body: JSON.stringify({ action })
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.error || "Emeliyyat alinmadi");
+        alert("Yenilendi");
+        loadRechargeRequests();
+      } catch (e) {
+        alert(e.message || "Xeta");
+      }
     }
 
-    async function setBan(uid, banned) {
-      await adminSetBan(uid, banned);
-      await loadUsers();
-    }
+    document.getElementById("adminLoginBtn").addEventListener("click", adminLoginClick);
+    document.getElementById("refreshBtn").addEventListener("click", loadRechargeRequests);
+
+    if (getAdminToken()) loadRechargeRequests();
   </script>
 </body>
 </html>
