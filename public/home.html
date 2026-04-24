@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Para.man | Ana səhifə</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="auth.js"></script>
+</head>
+<body class="bg-slate-100 min-h-screen">
+  <main class="max-w-5xl mx-auto p-4">
+    <div class="bg-white rounded-2xl shadow p-4 mb-4 flex flex-wrap items-center justify-between gap-3">
+      <h1 class="text-xl font-bold">Paketlər</h1>
+      <div id="balanceText" class="font-semibold">Balans: ₼0.00</div>
+      <div class="flex gap-2">
+        <a href="recharge.html" class="px-3 py-2 rounded-lg bg-emerald-600 text-white">Yüklə</a>
+        <button id="logoutBtn" class="px-3 py-2 rounded-lg bg-slate-700 text-white">Çıxış</button>
+      </div>
+    </div>
+
+    <section id="cards" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4"></section>
+  </main>
+
+  <script>
+    const packages = [
+      { id: "para1", name: "Para 1", price: 50, daily: 5, total: 500, days: 100 },
+      { id: "para2", name: "Para 2", price: 100, daily: 10, total: 1000, days: 100 },
+      { id: "para3", name: "Para 3", price: 200, daily: 20, total: 2000, days: 100 },
+      { id: "para4", name: "Para 4", price: 500, daily: 50, total: 5000, days: 100 },
+      { id: "para5", name: "Para 5", price: 1000, daily: 100, total: 10000, days: 100 },
+      { id: "para6", name: "Para 6", price: 2000, daily: 200, total: 20000, days: 100 }
+    ];
+
+    function money(v) {
+      return "₼" + Number(v).toFixed(2);
+    }
+
+    function getOwned() {
+      try { return JSON.parse(localStorage.getItem("pm_owned_packages") || "[]"); }
+      catch { return []; }
+    }
+    function setOwned(arr) {
+      localStorage.setItem("pm_owned_packages", JSON.stringify(arr));
+    }
+
+    function renderCards(balance) {
+      const owned = getOwned();
+      const el = document.getElementById("cards");
+
+      el.innerHTML = packages.map(p => {
+        const isOwned = owned.includes(p.id);
+        return `
+          <article class="bg-white rounded-2xl shadow p-4">
+            <h3 class="text-lg font-bold mb-1">${p.name}</h3>
+            <p class="text-sm text-slate-500 mb-1">Müddət: ${p.days} gün</p>
+            <p class="text-sm mb-1">Gündəlik gəlir: <b>${money(p.daily)}</b></p>
+            <p class="text-sm mb-3">Ümumi gəlir: <b>${money(p.total)}</b></p>
+            <button
+              class="buyBtn w-full py-2 rounded-lg ${isOwned ? "bg-slate-300 text-slate-700" : "bg-blue-600 text-white"}"
+              data-id="${p.id}"
+              data-price="${p.price}"
+              ${isOwned ? "disabled" : ""}
+            >
+              ${isOwned ? "Alınıb" : "Al " + money(p.price)}
+            </button>
+          </article>
+        `;
+      }).join("");
+
+      document.querySelectorAll(".buyBtn").forEach(btn => {
+        btn.addEventListener("click", async () => {
+          const pkgId = btn.dataset.id;
+          const price = Number(btn.dataset.price || 0);
+
+          try {
+            const me = await fetchMe();
+            const currentBalance = Number(me.balance || 0);
+
+            if (currentBalance < price) {
+              location.href = `recharge.html?need=${encodeURIComponent(price - currentBalance)}&pkg=${encodeURIComponent(pkgId)}`;
+              return;
+            }
+
+            // balansdan çıxır (server-side)
+            const newBalance = await withdrawBalance(price);
+
+            // paket sahibi kimi qeyd (frontend demo)
+            const ownedArr = getOwned();
+            if (!ownedArr.includes(pkgId)) {
+              ownedArr.push(pkgId);
+              setOwned(ownedArr);
+            }
+
+            alert(`Paket alındı. Yeni balans: ${money(newBalance)}`);
+            document.getElementById("balanceText").textContent = `Balans: ${money(newBalance)}`;
+            renderCards(Number(newBalance));
+          } catch (e) {
+            alert(e.message);
+          }
+        });
+      });
+    }
+
+    async function init() {
+      const s = getSession();
+      if (!s?.token) {
+        location.href = "index.html";
+        return;
+      }
+
+      const me = await fetchMe();
+      const balance = Number(me.balance || 0);
+      document.getElementById("balanceText").textContent = `Balans: ${money(balance)}`;
+      renderCards(balance);
+    }
+
+    document.getElementById("logoutBtn").addEventListener("click", () => {
+      clearSession();
+      location.href = "index.html";
+    });
+
+    init().catch((e) => {
+      alert(e.message);
+      location.href = "index.html";
+    });
+  </script>
+</body>
+</html>

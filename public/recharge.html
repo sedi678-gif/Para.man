@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Para.man | Yüklə</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="auth.js"></script>
+</head>
+<body class="bg-slate-100 min-h-screen">
+  <main class="max-w-md mx-auto p-4">
+    <div class="bg-white rounded-2xl shadow p-5">
+      <h1 class="text-2xl font-bold mb-2">Balansı artır</h1>
+      <p id="needInfo" class="text-sm text-slate-500 mb-4">Hesaba məbləğ yükləyin.</p>
+
+      <div class="mb-3 font-semibold" id="balanceText">Balans: ₼0.00</div>
+
+      <label class="block text-sm mb-2">Məbləğ</label>
+      <input id="amount" type="number" min="1" class="w-full border rounded-xl p-3 mb-4" value="50" />
+
+      <div class="grid grid-cols-4 gap-2 mb-4">
+        <button class="quick bg-slate-200 rounded-lg py-2" data-v="50">50</button>
+        <button class="quick bg-slate-200 rounded-lg py-2" data-v="100">100</button>
+        <button class="quick bg-slate-200 rounded-lg py-2" data-v="200">200</button>
+        <button class="quick bg-slate-200 rounded-lg py-2" data-v="500">500</button>
+      </div>
+
+      <button id="payBtn" class="w-full bg-emerald-600 text-white rounded-xl py-3 font-semibold mb-2">
+        İndi yüklə
+      </button>
+      <a href="home.html" class="block text-center text-blue-600">Geri</a>
+    </div>
+  </main>
+
+  <script>
+    function money(v) {
+      return "₼" + Number(v).toFixed(2);
+    }
+
+    document.querySelectorAll(".quick").forEach(btn => {
+      btn.addEventListener("click", () => {
+        document.getElementById("amount").value = btn.dataset.v;
+      });
+    });
+
+    async function init() {
+      const s = getSession();
+      if (!s?.token) {
+        location.href = "index.html";
+        return;
+      }
+
+      const me = await fetchMe();
+      document.getElementById("balanceText").textContent = `Balans: ${money(me.balance || 0)}`;
+
+      const p = new URLSearchParams(location.search);
+      const need = Number(p.get("need") || 0);
+      const pkg = p.get("pkg") || "";
+      if (need > 0) {
+        document.getElementById("needInfo").textContent =
+          `Bu paketi almaq üçün əlavə ${money(need)} lazımdır${pkg ? ` (${pkg})` : ""}.`;
+        document.getElementById("amount").value = String(Math.ceil(need));
+      }
+    }
+
+    document.getElementById("payBtn").addEventListener("click", async () => {
+      try {
+        const amount = Number(document.getElementById("amount").value || 0);
+        if (amount <= 0) throw new Error("Düzgün məbləğ daxil edin");
+
+        const newBal = await rechargeBalance(amount);
+        alert(`Balans artırıldı. Yeni balans: ${money(newBal)}`);
+        location.href = "home.html";
+      } catch (e) {
+        alert(e.message);
+      }
+    });
+
+    init().catch((e) => {
+      alert(e.message);
+      location.href = "index.html";
+    });
+  </script>
+</body>
+</html>
