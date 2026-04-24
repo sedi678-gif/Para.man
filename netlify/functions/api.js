@@ -60,6 +60,28 @@ async function createUniqueReferralCode() {
   throw new Error("Referral kod yaradilmadi");
 }
 
+function getAllowedPromoCodes() {
+  // Netlify ENV:
+  // PROMO_CODES=START50:50,VIP100:100,AZ777:777
+  const raw = process.env.PROMO_CODES || "";
+  const map = new Map();
+
+  raw
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean)
+    .forEach((pair) => {
+      const [codeRaw, amountRaw] = pair.split(":");
+      const code = String(codeRaw || "").trim().toUpperCase();
+      const amount = Number(String(amountRaw || "").trim());
+      if (code && Number.isFinite(amount) && amount > 0) {
+        map.set(code, amount);
+      }
+    });
+
+  return map;
+}
+
 exports.handler = async (event) => {
   try {
     if (!supabaseUrl || !supabaseServiceKey) {
@@ -223,6 +245,53 @@ exports.handler = async (event) => {
       return json(200, { balance: newBal });
     }
 
+    // TREASURE PROMO REDEEM
+    if (method === "POST" && path === "/treasure/redeem") {
+      const authUser = parseToken(event);
+      const promoCode = String(body.promoCode || "").trim().toUpperCase();
+      if (!promoCode) return json(400, { error: "Promo kod bosdur" });
+
+      const allowed = getAllowedPromoCodes();
+      const bonus = allowed.get(promoCode);
+      if (!bonus) return json(400, { error: "Kod etibarsizdir" });
+
+      const { data: currentUser } = await supabase
+        .from("users")
+        .select("balance, used_promo_codes")
+        .eq("user_id", authUser.uid)
+        .maybeSingle();
+
+      if (!currentUser) return json(404, { error: "Tapilmadi" });
+
+      const usedCodes = Array.isArray(currentUser.used_promo_codes)
+        ? currentUser.used_promo_codes
+        : [];
+
+      if (usedCodes.includes(promoCode)) {
+        return json(400, { error: "Bu kod artiq istifade edilib" });
+      }
+
+      const newBal = Number(currentUser.balance || 0) + Number(bonus);
+      usedCodes.push(promoCode);
+
+      const { error: updErr } = await supabase
+        .from("users")
+        .update({
+          balance: newBal,
+          used_promo_codes: usedCodes
+        })
+        .eq("user_id", authUser.uid);
+
+      if (updErr) return json(500, { error: "Kod tetbiq olunmadi" });
+
+      return json(200, {
+        ok: true,
+        promoCode,
+        bonus: Number(bonus),
+        balance: newBal
+      });
+    }
+
     // MY REFERRALS
     if (method === "GET" && path === "/my-referrals") {
       const authUser = parseToken(event);
@@ -253,7 +322,7 @@ exports.handler = async (event) => {
 
       const { data: users } = await supabase
         .from("users")
-        .select("user_id,name,phone,balance,is_banned,referral_code,referred_by_code,register_ip,created_at")
+        .select("user_id,name,phone,balance,is_banned,referral_code,referred_by_code,register_ip,created_at,used_promo_codes")
         .order("id", { ascending: false });
 
       return json(200, { users: users || [] });

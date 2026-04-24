@@ -1,18 +1,141 @@
-<!DOCTYPE html><html lang="az"><head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Para.man | Məhsullarım</title>
-<script src="https://cdn.tailwindcss.com"></script>
-<style>body{padding-bottom:78px}.bottom-nav a.active{color:#22d3ee;font-weight:700}</style>
-</head><body class="bg-slate-100 min-h-screen">
-<main class="max-w-xl mx-auto p-4"><div class="bg-white rounded-2xl shadow p-5">
-<h1 class="text-2xl font-bold mb-3">Məhsullarım</h1>
-<div id="owned" class="text-slate-700"></div>
-</div></main>
-<nav class="bottom-nav fixed bottom-0 left-0 right-0 bg-[#0f172a] text-white border-t border-slate-700 flex justify-around py-3 z-50">
-<a href="home.html">🏠 Ana səhifə</a><a href="products.html" class="active">🛍️ Məhsullarım</a><a href="treasury.html">🏛️ Xəzinə</a><a href="share.html">📣 Paylaş</a><a href="my.html">👤 Mənim</a>
-</nav>
-<script>
-const arr = JSON.parse(localStorage.getItem("pm_owned_packages") || "[]");
-document.getElementById("owned").textContent = arr.length ? arr.join(", ") : "Hələ paket alınmayıb.";
-</script>
-</body></html>
+<!DOCTYPE html>
+<html lang="az">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Məhsullarım</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="auth.js"></script>
+  <style>
+    body { padding-bottom: 78px; }
+    .bottom-nav a.active { color: #16a34a; font-weight: 700; }
+  </style>
+</head>
+<body class="bg-[#f0f1f4] min-h-screen">
+  <main class="max-w-md mx-auto">
+    <header class="bg-green-600 text-white text-center py-4 text-2xl font-bold">
+      Məhsullarım
+    </header>
+
+    <section class="px-4 py-3">
+      <div class="grid grid-cols-2 gap-3">
+        <div class="bg-green-600 text-white rounded-xl p-3 text-center">
+          <div id="totalCount" class="text-xl font-bold">0</div>
+          <div class="text-sm opacity-90">Ümumi miqdar</div>
+        </div>
+        <div class="bg-green-600 text-white rounded-xl p-3 text-center">
+          <div id="totalIncome" class="text-xl font-bold">₼0.00</div>
+          <div class="text-sm opacity-90">Ümumi gəlir</div>
+        </div>
+      </div>
+
+      <div class="mt-3 bg-green-600 text-white rounded-xl p-3 text-center">
+        <div id="dailyIncome" class="text-xl font-bold">₼0.00</div>
+        <div class="text-sm opacity-90">Gündəlik gəlir</div>
+      </div>
+    </section>
+
+    <section class="px-4 pb-6">
+      <div id="emptyState" class="text-center text-slate-500 py-16 hidden">
+        <div class="text-5xl mb-3">📦</div>
+        <div>Avadanlıq yoxdur</div>
+      </div>
+
+      <div id="ownedList" class="space-y-3"></div>
+    </section>
+  </main>
+
+  <nav class="bottom-nav fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 flex justify-around py-3 z-50">
+    <a href="home.html">🏠<div class="text-xs">Ana səhifə</div></a>
+    <a href="products.html" class="active">🛍️<div class="text-xs">Məhsullarım</div></a>
+    <a href="treasury.html">🏛️<div class="text-xs">Xəzinə</div></a>
+    <a href="share.html">📣<div class="text-xs">Paylaş</div></a>
+    <a href="my.html">👤<div class="text-xs">Mənim</div></a>
+  </nav>
+
+  <script>
+    function money(v) {
+      return "₼" + Number(v || 0).toFixed(2);
+    }
+
+    const packageMap = {
+      para1: { name: "Para 1", price: 50, daily: 5, total: 500, days: 100 },
+      para2: { name: "Para 2", price: 100, daily: 10, total: 1000, days: 100 },
+      para3: { name: "Para 3", price: 200, daily: 20, total: 2000, days: 100 },
+      para4: { name: "Para 4", price: 500, daily: 50, total: 5000, days: 100 },
+      para5: { name: "Para 5", price: 1000, daily: 100, total: 10000, days: 100 },
+      para6: { name: "Para 6", price: 2000, daily: 200, total: 20000, days: 100 }
+    };
+
+    function getOwnedPackages() {
+      try {
+        const arr = JSON.parse(localStorage.getItem("pm_owned_packages") || "[]");
+        return Array.isArray(arr) ? arr : [];
+      } catch {
+        return [];
+      }
+    }
+
+    async function init() {
+      try {
+        const s = getSession();
+        if (!s?.token) {
+          location.href = "index.html";
+          return;
+        }
+
+        await fetchMe(); // sessiya yoxlaması
+
+        const owned = getOwnedPackages();
+        const listEl = document.getElementById("ownedList");
+        const emptyEl = document.getElementById("emptyState");
+
+        let totalCount = 0;
+        let totalIncome = 0;
+        let dailyIncome = 0;
+
+        const cards = [];
+
+        for (const id of owned) {
+          const p = packageMap[id];
+          if (!p) continue;
+
+          totalCount += 1;
+          totalIncome += Number(p.total);
+          dailyIncome += Number(p.daily);
+
+          cards.push(`
+            <article class="bg-white rounded-xl shadow p-4 border border-slate-200">
+              <div class="flex items-center justify-between mb-2">
+                <h3 class="text-lg font-bold">${p.name}</h3>
+                <span class="text-xs px-2 py-1 rounded bg-green-100 text-green-700">Aktiv</span>
+              </div>
+              <div class="text-sm text-slate-600">Müddət: ${p.days} gün</div>
+              <div class="text-sm mt-1">Qiymət: <b>${money(p.price)}</b></div>
+              <div class="text-sm mt-1">Gündəlik gəlir: <b>${money(p.daily)}</b></div>
+              <div class="text-sm mt-1">Ümumi gəlir: <b>${money(p.total)}</b></div>
+            </article>
+          `);
+        }
+
+        document.getElementById("totalCount").textContent = String(totalCount);
+        document.getElementById("totalIncome").textContent = money(totalIncome);
+        document.getElementById("dailyIncome").textContent = money(dailyIncome);
+
+        if (!cards.length) {
+          emptyEl.classList.remove("hidden");
+          listEl.innerHTML = "";
+        } else {
+          emptyEl.classList.add("hidden");
+          listEl.innerHTML = cards.join("");
+        }
+      } catch (e) {
+        alert(e.message || "Xəta baş verdi");
+        location.href = "index.html";
+      }
+    }
+
+    init();
+  </script>
+</body>
+</html>
