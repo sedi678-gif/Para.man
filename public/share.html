@@ -1,19 +1,183 @@
-<!DOCTYPE html><html lang="az"><head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Para.man | Paylaş</title>
-<script src="https://cdn.tailwindcss.com"></script>
-<script src="auth.js"></script>
-<style>body{padding-bottom:78px}.bottom-nav a.active{color:#22d3ee;font-weight:700}</style>
-</head><body class="bg-slate-100 min-h-screen">
-<main class="max-w-xl mx-auto p-4"><div class="bg-white rounded-2xl shadow p-5">
-<h1 class="text-2xl font-bold mb-3">Paylaş</h1>
-<p class="mb-2">Sənin referans kodun: <b id="refCode">Yüklənir...</b></p>
-<p class="text-slate-600">Dostlarını dəvət et.</p>
-</div></main>
-<nav class="bottom-nav fixed bottom-0 left-0 right-0 bg-[#0f172a] text-white border-t border-slate-700 flex justify-around py-3 z-50">
-<a href="home.html">🏠 Ana səhifə</a><a href="products.html">🛍️ Məhsullarım</a><a href="treasury.html">🏛️ Xəzinə</a><a href="share.html" class="active">📣 Paylaş</a><a href="my.html">👤 Mənim</a>
-</nav>
-<script>
-(async function(){ try{ const me=await fetchMe(); document.getElementById("refCode").textContent=me.referralCode||"Yoxdur"; }catch{ document.getElementById("refCode").textContent="Yoxdur"; } })();
-</script>
-</body></html>
+<!DOCTYPE html>
+<html lang="az">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Para.man | Paylaş</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="auth.js"></script>
+  <style>
+    body { padding-bottom: 78px; background: #f2f3f7; }
+    .bottom-nav a.active { color: #16a34a; font-weight: 700; }
+    .glass {
+      background: rgba(255,255,255,0.18);
+      backdrop-filter: blur(5px);
+      -webkit-backdrop-filter: blur(5px);
+    }
+  </style>
+</head>
+<body>
+  <main class="max-w-md mx-auto pb-4">
+    <!-- Hero -->
+    <section class="relative rounded-b-[28px] overflow-hidden shadow">
+      <img
+        src="https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=1200&q=60"
+        alt="bg"
+        class="w-full h-72 object-cover"
+      />
+      <div class="absolute inset-0 bg-black/35"></div>
+
+      <div class="absolute inset-0 p-5 text-white">
+        <h1 class="text-4xl font-extrabold mb-4">🎯 Mənim komandam</h1>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div class="glass rounded-2xl p-3 text-center">
+            <div class="text-sm opacity-90">Komanda ölçüsü</div>
+            <div id="teamSize" class="text-4xl font-extrabold mt-1">0</div>
+          </div>
+          <div class="glass rounded-2xl p-3 text-center">
+            <div class="text-sm opacity-90">birdəfəlik məbləğ</div>
+            <div id="oneTimeReward" class="text-4xl font-extrabold mt-1">₼0.00</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Invite link -->
+    <section class="px-4 mt-4">
+      <h2 class="text-4xl font-extrabold text-slate-800 mb-3">Dəvət linki</h2>
+
+      <div class="bg-[#10b44a] rounded-2xl text-white p-3 shadow">
+        <div class="text-lg font-semibold mb-2">Kod: <span id="refCode">Yüklənir...</span></div>
+        <div id="refLink" class="text-sm break-all opacity-95 mb-3"></div>
+        <button
+          id="copyBtn"
+          class="w-full py-2 rounded-xl bg-white text-[#0f9e40] font-bold"
+        >
+          📋 Kopyala
+        </button>
+      </div>
+    </section>
+
+    <!-- Level cards -->
+    <section class="px-4 mt-4 space-y-3">
+      <article class="bg-[#10b44a] text-white rounded-2xl p-4 shadow">
+        <div class="grid grid-cols-[84px_1fr_auto] items-center gap-3">
+          <div class="bg-white/20 rounded-xl p-2 text-center">
+            <div class="text-3xl font-bold leading-none">1</div>
+            <div class="text-sm opacity-95 mt-1">30%</div>
+          </div>
+          <div>
+            <div class="text-2xl">Komanda ölçüsü: <b id="lvl1Count">0</b></div>
+            <div class="text-2xl">Mükafat: <b id="lvl1Reward">₼0.00</b></div>
+          </div>
+          <div class="text-2xl opacity-95">👉 Detallar</div>
+        </div>
+      </article>
+
+      <article class="bg-[#10b44a] text-white rounded-2xl p-4 shadow">
+        <div class="grid grid-cols-[84px_1fr_auto] items-center gap-3">
+          <div class="bg-white/20 rounded-xl p-2 text-center">
+            <div class="text-3xl font-bold leading-none">2</div>
+            <div class="text-sm opacity-95 mt-1">2%</div>
+          </div>
+          <div>
+            <div class="text-2xl">Komanda ölçüsü: <b id="lvl2Count">0</b></div>
+            <div class="text-2xl">Mükafat: <b id="lvl2Reward">₼0.00</b></div>
+          </div>
+          <div class="text-2xl opacity-95">👉 Detallar</div>
+        </div>
+      </article>
+
+      <article class="bg-[#10b44a] text-white rounded-2xl p-4 shadow">
+        <div class="grid grid-cols-[84px_1fr_auto] items-center gap-3">
+          <div class="bg-white/20 rounded-xl p-2 text-center">
+            <div class="text-3xl font-bold leading-none">3</div>
+            <div class="text-sm opacity-95 mt-1">1%</div>
+          </div>
+          <div>
+            <div class="text-2xl">Komanda ölçüsü: <b id="lvl3Count">0</b></div>
+            <div class="text-2xl">Mükafat: <b id="lvl3Reward">₼0.00</b></div>
+          </div>
+          <div class="text-2xl opacity-95">👉 Detallar</div>
+        </div>
+      </article>
+    </section>
+  </main>
+
+  <nav class="bottom-nav fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 flex justify-around py-3 z-50">
+    <a href="home.html">🏠<div class="text-xs">Ana səhifə</div></a>
+    <a href="products.html">🛍️<div class="text-xs">Məhsullarım</div></a>
+    <a href="treasury.html">🏛️<div class="text-xs">Xəzinə</div></a>
+    <a href="share.html" class="active">📣<div class="text-xs">Paylaş</div></a>
+    <a href="my.html">👤<div class="text-xs">Mənim</div></a>
+  </nav>
+
+  <script>
+    function money(v) {
+      return "₼" + Number(v || 0).toFixed(2);
+    }
+
+    async function loadShareData() {
+      const s = getSession();
+      if (!s?.token) {
+        location.href = "index.html";
+        return;
+      }
+
+      const me = await fetchMe();
+      const refCode = me.referral_code || me.referralCode || "Yoxdur";
+      const refLink = `${location.origin}/register.html?ref=${encodeURIComponent(refCode)}`;
+
+      document.getElementById("refCode").textContent = refCode;
+      document.getElementById("refLink").textContent = refLink;
+
+      // Referrals
+      const referrals = await fetchMyReferrals();
+      const totalTeam = Array.isArray(referrals) ? referrals.length : 0;
+
+      // Sadə level bölgüsü (demo):
+      // lvl1: bütün referral-lar
+      // lvl2/lvl3 backenddə ayrıca yoxdursa 0 qalır
+      const lvl1 = totalTeam;
+      const lvl2 = 0;
+      const lvl3 = 0;
+
+      // Mükafat hesabı (demo)
+      // 1-ci səviyyə: registrasiya başına ₼1
+      // 2-ci səviyyə: ₼0
+      // 3-cü səviyyə: ₼0
+      const lvl1Reward = lvl1 * 1;
+      const lvl2Reward = lvl2 * 0;
+      const lvl3Reward = lvl3 * 0;
+
+      const oneTimeReward = lvl1Reward + lvl2Reward + lvl3Reward;
+
+      document.getElementById("teamSize").textContent = totalTeam;
+      document.getElementById("oneTimeReward").textContent = money(oneTimeReward);
+
+      document.getElementById("lvl1Count").textContent = lvl1;
+      document.getElementById("lvl2Count").textContent = lvl2;
+      document.getElementById("lvl3Count").textContent = lvl3;
+
+      document.getElementById("lvl1Reward").textContent = money(lvl1Reward);
+      document.getElementById("lvl2Reward").textContent = money(lvl2Reward);
+      document.getElementById("lvl3Reward").textContent = money(lvl3Reward);
+
+      document.getElementById("copyBtn").addEventListener("click", async () => {
+        try {
+          await navigator.clipboard.writeText(refLink);
+          alert("Dəvət linki kopyalandı");
+        } catch {
+          alert("Kopyalama alınmadı");
+        }
+      });
+    }
+
+    loadShareData().catch((e) => {
+      alert(e.message || "Xəta baş verdi");
+      location.href = "index.html";
+    });
+  </script>
+</body>
+</html>
