@@ -12,73 +12,35 @@
     <h1 class="text-white text-4xl font-extrabold mb-8">Qeydiyyat</h1>
 
     <label class="block text-slate-200 text-sm mb-2">Ad</label>
-    <input
-      id="name"
-      type="text"
-      class="w-full border rounded-xl p-3 mb-4 text-black outline-none"
-      placeholder="Adınız"
-      autocomplete="name"
-    />
+    <input id="name" type="text" class="w-full border rounded-xl p-3 mb-4 text-black outline-none" placeholder="Adınız" />
 
     <label class="block text-slate-200 text-sm mb-2">Telefon</label>
     <div class="flex mb-4">
-      <span class="px-4 flex items-center bg-white border border-r-0 rounded-l-xl text-slate-800 font-semibold">
-        +994
-      </span>
-      <input
-        id="phone"
-        type="text"
-        class="w-full border rounded-r-xl p-3 text-black outline-none"
-        placeholder="501234567"
-        maxlength="9"
-        inputmode="numeric"
-        autocomplete="tel"
-      />
+      <span class="px-4 flex items-center bg-white border border-r-0 rounded-l-xl text-slate-800 font-semibold">+994</span>
+      <input id="phone" type="text" class="w-full border rounded-r-xl p-3 text-black outline-none"
+             placeholder="501234567" maxlength="9" inputmode="numeric" />
     </div>
 
     <label class="block text-slate-200 text-sm mb-2">Şifrə</label>
-    <input
-      id="password"
-      type="password"
-      class="w-full border rounded-xl p-3 mb-4 text-black outline-none"
-      placeholder="Şifrə"
-      autocomplete="new-password"
-    />
+    <input id="password" type="password" class="w-full border rounded-xl p-3 mb-4 text-black outline-none" placeholder="Şifrə" />
 
     <label class="block text-slate-200 text-sm mb-2">Şifrə təkrarı</label>
-    <input
-      id="password2"
-      type="password"
-      class="w-full border rounded-xl p-3 mb-4 text-black outline-none"
-      placeholder="Şifrə təkrarı"
-      autocomplete="new-password"
-    />
+    <input id="password2" type="password" class="w-full border rounded-xl p-3 mb-4 text-black outline-none" placeholder="Şifrə təkrarı" />
 
     <label class="block text-slate-200 text-sm mb-2">Referal kod (istəyə bağlı)</label>
-    <input
-      id="referral"
-      type="text"
-      class="w-full border rounded-xl p-3 mb-4 text-black outline-none"
-      placeholder="Məs: ABC123"
-    />
+    <input id="referral" type="text" class="w-full border rounded-xl p-3 mb-4 text-black outline-none" placeholder="ABC123" />
 
-    <button
-      id="registerBtn"
-      class="w-full bg-yellow-400 hover:bg-yellow-300 text-slate-900 rounded-xl py-3 font-bold text-xl transition"
-    >
+    <button id="registerBtn" class="w-full bg-yellow-400 hover:bg-yellow-300 text-slate-900 rounded-xl py-3 font-bold text-xl">
       Qeydiyyatdan keç
     </button>
 
     <p class="text-slate-200 mt-5 text-sm">
-      Hesabın var?
-      <a href="index.html" class="text-yellow-300 underline">Daxil ol</a>
+      Hesabın var? <a href="index.html" class="text-yellow-300 underline">Daxil ol</a>
     </p>
   </main>
 
   <script>
     const phoneInput = document.getElementById("phone");
-
-    // Yalnız 9 rəqəm qəbul et
     phoneInput.addEventListener("input", () => {
       phoneInput.value = phoneInput.value.replace(/\D/g, "").slice(0, 9);
     });
@@ -86,29 +48,20 @@
     document.getElementById("registerBtn").addEventListener("click", async () => {
       try {
         const name = document.getElementById("name").value.trim();
-        const phone9 = phoneInput.value.trim();
+        const phone = phoneInput.value.trim();
         const password = document.getElementById("password").value;
         const password2 = document.getElementById("password2").value;
         const referralCode = document.getElementById("referral").value.trim();
 
-        if (!name) throw new Error("Adınızı daxil edin");
-        if (phone9.length !== 9) throw new Error("Telefon 9 rəqəm olmalıdır (məs: 501234567)");
-        if (!password) throw new Error("Şifrəni daxil edin");
+        if (!name) throw new Error("Ad boş ola bilməz");
+        if (phone.length !== 9) throw new Error("Telefon 9 rəqəm olmalıdır");
         if (password.length < 4) throw new Error("Şifrə ən az 4 simvol olmalıdır");
         if (password !== password2) throw new Error("Şifrələr eyni deyil");
 
-        // auth.js daxilində +994 formatına çevrilir
-        await registerUser({
-          name,
-          phone: phone9,
-          password,
-          password2,
-          referralCode
-        });
-
+        await registerUser({ name, phone, password, password2, referralCode });
         location.href = "home.html";
       } catch (e) {
-        alert(e.message || "Xəta baş verdi");
+        alert(e.message);
       }
     });
   </script>

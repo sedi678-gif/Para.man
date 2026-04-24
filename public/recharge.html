@@ -13,16 +13,15 @@
       <h1 class="text-2xl font-bold mb-2">Balansı artır</h1>
       <p id="needInfo" class="text-sm text-slate-500 mb-4">Hesaba məbləğ yükləyin.</p>
 
-      <div class="mb-3 font-semibold" id="balanceText">Balans: ₼0.00</div>
+      <div id="balanceText" class="font-semibold mb-3">Balans: ₼0.00</div>
 
-      <label class="block text-sm mb-2">Məbləğ</label>
       <input id="amount" type="number" min="1" class="w-full border rounded-xl p-3 mb-4" value="50" />
 
       <div class="grid grid-cols-4 gap-2 mb-4">
-        <button class="quick bg-slate-200 rounded-lg py-2" data-v="50">50</button>
-        <button class="quick bg-slate-200 rounded-lg py-2" data-v="100">100</button>
-        <button class="quick bg-slate-200 rounded-lg py-2" data-v="200">200</button>
-        <button class="quick bg-slate-200 rounded-lg py-2" data-v="500">500</button>
+        <button class="q bg-slate-200 rounded-lg py-2" data-v="50">50</button>
+        <button class="q bg-slate-200 rounded-lg py-2" data-v="100">100</button>
+        <button class="q bg-slate-200 rounded-lg py-2" data-v="200">200</button>
+        <button class="q bg-slate-200 rounded-lg py-2" data-v="500">500</button>
       </div>
 
       <button id="payBtn" class="w-full bg-emerald-600 text-white rounded-xl py-3 font-semibold mb-2">
@@ -33,11 +32,9 @@
   </main>
 
   <script>
-    function money(v) {
-      return "₼" + Number(v).toFixed(2);
-    }
+    function money(v) { return "₼" + Number(v).toFixed(2); }
 
-    document.querySelectorAll(".quick").forEach(btn => {
+    document.querySelectorAll(".q").forEach(btn => {
       btn.addEventListener("click", () => {
         document.getElementById("amount").value = btn.dataset.v;
       });
@@ -67,9 +64,8 @@
       try {
         const amount = Number(document.getElementById("amount").value || 0);
         if (amount <= 0) throw new Error("Düzgün məbləğ daxil edin");
-
-        const newBal = await rechargeBalance(amount);
-        alert(`Balans artırıldı. Yeni balans: ${money(newBal)}`);
+        const newBalance = await rechargeBalance(amount);
+        alert(`Balans artırıldı. Yeni balans: ${money(newBalance)}`);
         location.href = "home.html";
       } catch (e) {
         alert(e.message);

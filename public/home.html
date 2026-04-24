@@ -9,7 +9,7 @@
 </head>
 <body class="bg-slate-100 min-h-screen">
   <main class="max-w-5xl mx-auto p-4">
-    <div class="bg-white rounded-2xl shadow p-4 mb-4 flex flex-wrap items-center justify-between gap-3">
+    <div class="bg-white rounded-2xl shadow p-4 mb-4 flex items-center justify-between gap-2 flex-wrap">
       <h1 class="text-xl font-bold">Paketlər</h1>
       <div id="balanceText" class="font-semibold">Balans: ₼0.00</div>
       <div class="flex gap-2">
@@ -31,10 +31,7 @@
       { id: "para6", name: "Para 6", price: 2000, daily: 200, total: 20000, days: 100 }
     ];
 
-    function money(v) {
-      return "₼" + Number(v).toFixed(2);
-    }
-
+    function money(v) { return "₼" + Number(v).toFixed(2); }
     function getOwned() {
       try { return JSON.parse(localStorage.getItem("pm_owned_packages") || "[]"); }
       catch { return []; }
@@ -43,24 +40,19 @@
       localStorage.setItem("pm_owned_packages", JSON.stringify(arr));
     }
 
-    function renderCards(balance) {
+    function renderCards() {
       const owned = getOwned();
-      const el = document.getElementById("cards");
-
-      el.innerHTML = packages.map(p => {
+      const cards = document.getElementById("cards");
+      cards.innerHTML = packages.map(p => {
         const isOwned = owned.includes(p.id);
         return `
           <article class="bg-white rounded-2xl shadow p-4">
             <h3 class="text-lg font-bold mb-1">${p.name}</h3>
-            <p class="text-sm text-slate-500 mb-1">Müddət: ${p.days} gün</p>
-            <p class="text-sm mb-1">Gündəlik gəlir: <b>${money(p.daily)}</b></p>
+            <p class="text-sm text-slate-500">Müddət: ${p.days} gün</p>
+            <p class="text-sm">Gündəlik gəlir: <b>${money(p.daily)}</b></p>
             <p class="text-sm mb-3">Ümumi gəlir: <b>${money(p.total)}</b></p>
-            <button
-              class="buyBtn w-full py-2 rounded-lg ${isOwned ? "bg-slate-300 text-slate-700" : "bg-blue-600 text-white"}"
-              data-id="${p.id}"
-              data-price="${p.price}"
-              ${isOwned ? "disabled" : ""}
-            >
+            <button class="buyBtn w-full py-2 rounded-lg ${isOwned ? "bg-slate-300" : "bg-blue-600 text-white"}"
+                    data-id="${p.id}" data-price="${p.price}" ${isOwned ? "disabled" : ""}>
               ${isOwned ? "Alınıb" : "Al " + money(p.price)}
             </button>
           </article>
@@ -69,31 +61,28 @@
 
       document.querySelectorAll(".buyBtn").forEach(btn => {
         btn.addEventListener("click", async () => {
-          const pkgId = btn.dataset.id;
+          const id = btn.dataset.id;
           const price = Number(btn.dataset.price || 0);
 
           try {
             const me = await fetchMe();
-            const currentBalance = Number(me.balance || 0);
+            const balance = Number(me.balance || 0);
 
-            if (currentBalance < price) {
-              location.href = `recharge.html?need=${encodeURIComponent(price - currentBalance)}&pkg=${encodeURIComponent(pkgId)}`;
+            if (balance < price) {
+              location.href = `recharge.html?need=${encodeURIComponent(price - balance)}&pkg=${encodeURIComponent(id)}`;
               return;
             }
 
-            // balansdan çıxır (server-side)
             const newBalance = await withdrawBalance(price);
-
-            // paket sahibi kimi qeyd (frontend demo)
             const ownedArr = getOwned();
-            if (!ownedArr.includes(pkgId)) {
-              ownedArr.push(pkgId);
+            if (!ownedArr.includes(id)) {
+              ownedArr.push(id);
               setOwned(ownedArr);
             }
 
-            alert(`Paket alındı. Yeni balans: ${money(newBalance)}`);
             document.getElementById("balanceText").textContent = `Balans: ${money(newBalance)}`;
-            renderCards(Number(newBalance));
+            alert("Paket alındı");
+            renderCards();
           } catch (e) {
             alert(e.message);
           }
@@ -107,11 +96,9 @@
         location.href = "index.html";
         return;
       }
-
       const me = await fetchMe();
-      const balance = Number(me.balance || 0);
-      document.getElementById("balanceText").textContent = `Balans: ${money(balance)}`;
-      renderCards(balance);
+      document.getElementById("balanceText").textContent = `Balans: ${money(me.balance || 0)}`;
+      renderCards();
     }
 
     document.getElementById("logoutBtn").addEventListener("click", () => {

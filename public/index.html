@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Para.man | Login TEST-777</title>
+  <title>Para.man | Login</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="auth.js"></script>
 </head>
@@ -13,67 +13,40 @@
 
     <label class="block text-slate-200 text-sm mb-2">Telefon</label>
     <div class="flex mb-4">
-      <span class="px-4 flex items-center bg-white border border-r-0 rounded-l-xl text-slate-800 font-semibold">
-        +994
-      </span>
-      <input
-        id="phone"
-        type="text"
-        class="w-full border rounded-r-xl p-3 text-black outline-none"
-        placeholder="501234567"
-        maxlength="9"
-        inputmode="numeric"
-        autocomplete="tel"
-      />
+      <span class="px-4 flex items-center bg-white border border-r-0 rounded-l-xl text-slate-800 font-semibold">+994</span>
+      <input id="phone" type="text" class="w-full border rounded-r-xl p-3 text-black outline-none"
+             placeholder="501234567" maxlength="9" inputmode="numeric" />
     </div>
 
     <label class="block text-slate-200 text-sm mb-2">Şifrə</label>
-    <input
-      id="password"
-      type="password"
-      class="w-full border rounded-xl p-3 mb-4 text-black outline-none"
-      placeholder="Şifrə"
-      autocomplete="current-password"
-    />
+    <input id="password" type="password" class="w-full border rounded-xl p-3 mb-4 text-black outline-none"
+           placeholder="Şifrə" />
 
-    <button
-      id="loginBtn"
-      class="w-full bg-yellow-400 hover:bg-yellow-300 text-slate-900 rounded-xl py-3 font-bold text-xl transition"
-    >
+    <button id="loginBtn" class="w-full bg-yellow-400 hover:bg-yellow-300 text-slate-900 rounded-xl py-3 font-bold text-xl">
       Daxil ol
     </button>
 
     <p class="text-slate-200 mt-5 text-sm">
-      Hesabın yoxdur?
-      <a href="register.html" class="text-yellow-300 underline">Qeydiyyat</a>
+      Hesabın yoxdur? <a href="register.html" class="text-yellow-300 underline">Qeydiyyat</a>
     </p>
   </main>
 
   <script>
     const phoneInput = document.getElementById("phone");
-
-    // Yalnız 9 rəqəm qəbul et
     phoneInput.addEventListener("input", () => {
       phoneInput.value = phoneInput.value.replace(/\D/g, "").slice(0, 9);
     });
 
     document.getElementById("loginBtn").addEventListener("click", async () => {
       try {
-        const phone9 = phoneInput.value.trim();
+        const phone = phoneInput.value.trim();
         const password = document.getElementById("password").value;
-
-        if (phone9.length !== 9) {
-          throw new Error("Telefon 9 rəqəm olmalıdır (məs: 501234567)");
-        }
-        if (!password) {
-          throw new Error("Şifrəni daxil edin");
-        }
-
-        // auth.js daxilində +994 formatına çevrilir
-        await loginUser({ phone: phone9, password });
+        if (phone.length !== 9) throw new Error("Telefon 9 rəqəm olmalıdır");
+        if (!password) throw new Error("Şifrə boşdur");
+        await loginUser({ phone, password });
         location.href = "home.html";
       } catch (e) {
-        alert(e.message || "Xəta baş verdi");
+        alert(e.message);
       }
     });
   </script>
