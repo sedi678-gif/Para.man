@@ -1,13 +1,91 @@
-<!DOCTYPE html><html lang="az"><head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Para.man | Xəzinə</title>
-<script src="https://cdn.tailwindcss.com"></script>
-<style>body{padding-bottom:78px}.bottom-nav a.active{color:#22d3ee;font-weight:700}</style>
-</head><body class="bg-slate-100 min-h-screen">
-<main class="max-w-xl mx-auto p-4"><div class="bg-white rounded-2xl shadow p-5">
-<h1 class="text-2xl font-bold mb-3">Xəzinə</h1><p class="text-slate-600">Xəzinə bölməsi hazırdır.</p>
-</div></main>
-<nav class="bottom-nav fixed bottom-0 left-0 right-0 bg-[#0f172a] text-white border-t border-slate-700 flex justify-around py-3 z-50">
-<a href="home.html">🏠 Ana səhifə</a><a href="products.html">🛍️ Məhsullarım</a><a href="treasury.html" class="active">🏛️ Xəzinə</a><a href="share.html">📣 Paylaş</a><a href="my.html">👤 Mənim</a>
-</nav>
-</body></html>
+<!DOCTYPE html>
+<html lang="az">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Para.man | Xəzinə</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="auth.js"></script>
+  <style>
+    body { padding-bottom: 78px; background: #f2f3f7; }
+    .bottom-nav a.active { color: #16a34a; font-weight: 700; }
+  </style>
+</head>
+<body>
+  <main class="max-w-md mx-auto px-4 pt-4">
+    <h1 class="text-center text-3xl font-extrabold text-green-700 mb-4">🎁 Xəzinə</h1>
+
+    <section class="bg-white rounded-2xl shadow p-4 mb-4">
+      <p class="text-center text-slate-700 mb-3">Kodu daxil edərək xəzinəni açın</p>
+
+      <input
+        id="promoInput"
+        type="text"
+        class="w-full border border-yellow-400 rounded-xl p-3 mb-3 text-center uppercase"
+        placeholder="Bonus kodunu daxil edin"
+      />
+
+      <button
+        id="promoBtn"
+        class="w-full bg-yellow-400 hover:bg-yellow-300 rounded-xl py-3 font-bold text-slate-800"
+      >
+        💰 Kodu göndər
+      </button>
+    </section>
+
+    <section class="bg-white rounded-2xl shadow p-4">
+      <h2 class="text-xl font-bold text-green-700 mb-3">🔥 Son mükafatlar</h2>
+      <div id="lastRewards" class="space-y-2 text-sm text-slate-700">
+        <div class="flex justify-between"><span>+994 552***69</span><b class="text-green-700">₼0.41</b></div>
+        <div class="flex justify-between"><span>+994 552***46</span><b class="text-green-700">₼0.79</b></div>
+        <div class="flex justify-between"><span>+994 557***33</span><b class="text-green-700">₼0.58</b></div>
+      </div>
+    </section>
+  </main>
+
+  <nav class="bottom-nav fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 flex justify-around py-3 z-50">
+    <a href="home.html">🏠<div class="text-xs">Ana səhifə</div></a>
+    <a href="products.html">🛍️<div class="text-xs">Məhsullarım</div></a>
+    <a href="treasury.html" class="active">🏛️<div class="text-xs">Xəzinə</div></a>
+    <a href="share.html">📣<div class="text-xs">Paylaş</div></a>
+    <a href="my.html">👤<div class="text-xs">Mənim</div></a>
+  </nav>
+
+  <script>
+    document.getElementById("promoBtn").addEventListener("click", redeemPromo);
+
+    async function redeemPromo() {
+      try {
+        const s = getSession();
+        if (!s?.token) {
+          location.href = "index.html";
+          return;
+        }
+
+        const promoCode = document.getElementById("promoInput").value.trim().toUpperCase();
+        if (!promoCode) {
+          alert("Promo kodu daxil edin");
+          return;
+        }
+
+        const res = await fetch("/.netlify/functions/api/treasure/redeem", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer " + s.token
+          },
+          body: JSON.stringify({ promoCode })
+        });
+
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.error || "Kod qəbul edilmədi");
+
+        alert(`Uğurlu! +₼${Number(data.bonus).toFixed(2)} əlavə olundu`);
+        document.getElementById("promoInput").value = "";
+      } catch (e) {
+        alert(e.message || "Xəta");
+      }
+    }
+  </script>
+</body>
+</html>
