@@ -8,7 +8,8 @@
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-slate-100 p-4">
-  <main class="max-w-5xl mx-auto space-y-4">
+  <main class="max-w-6xl mx-auto space-y-4">
+    <!-- Admin login -->
     <section class="bg-white p-4 rounded-xl shadow">
       <h1 class="text-2xl font-bold mb-3">Admin giriş</h1>
       <div class="grid md:grid-cols-3 gap-2">
@@ -16,69 +17,157 @@
         <input id="adminPin" class="border rounded p-2" placeholder="PIN" />
         <button id="adminLoginBtn" class="bg-blue-600 text-white rounded p-2">Daxil ol</button>
       </div>
+      <div class="mt-3 flex gap-2">
+        <button id="refreshAllBtn" class="bg-slate-700 text-white rounded px-3 py-1">Hamısını yenilə</button>
+        <button id="logoutBtn" class="bg-red-600 text-white rounded px-3 py-1">Admin çıxış</button>
+      </div>
     </section>
 
+    <!-- Users -->
     <section class="bg-white p-4 rounded-xl shadow">
-      <div class="flex items-center justify-between mb-3">
-        <h2 class="text-xl font-bold">Yükləmə sorğuları</h2>
-        <button id="refreshBtn" class="bg-slate-700 text-white rounded px-3 py-1">Yenilə</button>
-      </div>
+      <h2 class="text-xl font-bold mb-3">İstifadəçilər</h2>
+      <div id="usersBox" class="space-y-3"></div>
+    </section>
+
+    <!-- Recharge requests -->
+    <section class="bg-white p-4 rounded-xl shadow">
+      <h2 class="text-xl font-bold mb-3">Yükləmə sorğuları</h2>
       <div id="rechargeRequests" class="space-y-3"></div>
+    </section>
+
+    <!-- Withdraw requests -->
+    <section class="bg-white p-4 rounded-xl shadow">
+      <h2 class="text-xl font-bold mb-3">Çıxarış sorğuları</h2>
+      <div id="withdrawRequests" class="space-y-3"></div>
     </section>
   </main>
 
   <script>
+    function esc(v) {
+      return String(v ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;");
+    }
+
+    function money(v) {
+      return "₼" + Number(v || 0).toFixed(2);
+    }
+
+    function fmtDate(iso) {
+      if (!iso) return "-";
+      const d = new Date(iso);
+      const yyyy = d.getFullYear();
+      const mm = String(d.getMonth() + 1).padStart(2, "0");
+      const dd = String(d.getDate()).padStart(2, "0");
+      const hh = String(d.getHours()).padStart(2, "0");
+      const mi = String(d.getMinutes()).padStart(2, "0");
+      return `${yyyy}-${mm}-${dd} ${hh}:${mi}`;
+    }
+
     async function adminLoginClick() {
       try {
         const phone = document.getElementById("adminPhone").value.trim();
         const pin = document.getElementById("adminPin").value.trim();
         await adminLogin(phone, pin);
         alert("Admin daxil oldu");
-        loadRechargeRequests();
+        await refreshAll();
       } catch (e) {
-        alert(e.message || "Xeta");
+        alert(e.message || "Xəta");
+      }
+    }
+
+    async function loadUsers() {
+      const token = getAdminToken();
+      if (!token) return;
+
+      const res = await fetch("/.netlify/functions/api/admin/users", {
+        headers: { Authorization: "Bearer " + token }
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || "User list alınmadı");
+
+      const users = data.users || [];
+      const box = document.getElementById("usersBox");
+
+      if (!users.length) {
+        box.innerHTML = `<div class="text-slate-500">İstifadəçi yoxdur</div>`;
+        return;
+      }
+
+      box.innerHTML = users.map(u => `
+        <div class="border rounded-xl p-3 bg-slate-50">
+          <div><b>User ID:</b> ${esc(u.user_id)}</div>
+          <div><b>Ad:</b> ${esc(u.name)}</div>
+          <div><b>Telefon:</b> ${esc(u.phone)}</div>
+          <div><b>Balans:</b> ${money(u.balance)}</div>
+          <div><b>Referral:</b> ${esc(u.referral_code || "-")}</div>
+          <div><b>Status:</b> ${u.is_banned ? "BANNED" : "ACTIVE"}</div>
+          <div class="mt-2">
+            <button onclick="toggleBan('${esc(u.user_id)}', ${u.is_banned ? "false" : "true"})"
+                    class="px-3 py-1 rounded ${u.is_banned ? "bg-green-600" : "bg-red-600"} text-white">
+              ${u.is_banned ? "Unban" : "Ban"}
+            </button>
+          </div>
+        </div>
+      `).join("");
+    }
+
+    async function toggleBan(uid, banned) {
+      try {
+        const token = getAdminToken();
+        const res = await fetch(`/.netlify/functions/api/admin/users/${encodeURIComponent(uid)}/ban`, {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: "Bearer " + token
+          },
+          body: JSON.stringify({ banned })
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.error || "Ban əməliyyatı alınmadı");
+        await loadUsers();
+      } catch (e) {
+        alert(e.message || "Xəta");
       }
     }
 
     async function loadRechargeRequests() {
-      try {
-        const token = getAdminToken();
-        if (!token) return;
+      const token = getAdminToken();
+      if (!token) return;
 
-        const res = await fetch("/.netlify/functions/api/admin/recharge-requests", {
-          headers: { Authorization: "Bearer " + token }
-        });
-        const data = await res.json().catch(() => ({}));
-        if (!res.ok) throw new Error(data.error || "Sorqular gelmedi");
+      const res = await fetch("/.netlify/functions/api/admin/recharge-requests", {
+        headers: { Authorization: "Bearer " + token }
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || "Recharge sorğuları alınmadı");
 
-        const box = document.getElementById("rechargeRequests");
-        const rows = data.requests || [];
+      const rows = data.requests || [];
+      const box = document.getElementById("rechargeRequests");
 
-        if (!rows.length) {
-          box.innerHTML = `<div class="text-slate-500">Sorğu yoxdur</div>`;
-          return;
-        }
-
-        box.innerHTML = rows.map(r => `
-          <div class="border rounded-xl p-3 bg-slate-50">
-            <div><b>ID:</b> ${r.id}</div>
-            <div><b>User:</b> ${r.user_id}</div>
-            <div><b>Seçilən məbləğ:</b> ${r.amount}</div>
-            <div><b>Qəbzdə məbləğ:</b> ${r.paid_amount}</div>
-            <div><b>Kanal:</b> ${r.channel}</div>
-            <div><b>Status:</b> ${r.status}</div>
-            <div class="mt-2">
-              <img src="${r.receipt_url}" alt="receipt" class="max-h-52 rounded border" />
-            </div>
-            <div class="mt-2 flex gap-2 ${r.status === "pending" ? "" : "hidden"}">
-              <button onclick="reviewRecharge(${r.id}, 'approve')" class="bg-green-600 text-white rounded px-3 py-1">Approve</button>
-              <button onclick="reviewRecharge(${r.id}, 'reject')" class="bg-red-600 text-white rounded px-3 py-1">Reject</button>
-            </div>
-          </div>
-        `).join("");
-      } catch (e) {
-        alert(e.message || "Xeta");
+      if (!rows.length) {
+        box.innerHTML = `<div class="text-slate-500">Recharge sorğusu yoxdur</div>`;
+        return;
       }
+
+      box.innerHTML = rows.map(r => `
+        <div class="border rounded-xl p-3 bg-slate-50">
+          <div><b>ID:</b> ${r.id}</div>
+          <div><b>User:</b> ${esc(r.user_id)}</div>
+          <div><b>Seçilən məbləğ:</b> ${money(r.amount)}</div>
+          <div><b>Qəbzdə məbləğ:</b> ${money(r.paid_amount)}</div>
+          <div><b>Kanal:</b> ${esc(r.channel)}</div>
+          <div><b>Status:</b> ${esc(r.status)}</div>
+          <div><b>Yaranma:</b> ${fmtDate(r.created_at)}</div>
+          <div class="mt-2">
+            <img src="${esc(r.receipt_url)}" alt="receipt" class="max-h-52 rounded border" />
+          </div>
+          <div class="mt-2 flex gap-2 ${r.status === "pending" ? "" : "hidden"}">
+            <button onclick="reviewRecharge(${r.id}, 'approve')" class="bg-green-600 text-white rounded px-3 py-1">Approve</button>
+            <button onclick="reviewRecharge(${r.id}, 'reject')" class="bg-red-600 text-white rounded px-3 py-1">Reject</button>
+          </div>
+        </div>
+      `).join("");
     }
 
     async function reviewRecharge(id, action) {
@@ -93,18 +182,92 @@
           body: JSON.stringify({ action })
         });
         const data = await res.json().catch(() => ({}));
-        if (!res.ok) throw new Error(data.error || "Emeliyyat alinmadi");
-        alert("Yenilendi");
-        loadRechargeRequests();
+        if (!res.ok) throw new Error(data.error || "Recharge review alınmadı");
+        alert("Yükləmə sorğusu yeniləndi");
+        await loadRechargeRequests();
+        await loadUsers();
       } catch (e) {
-        alert(e.message || "Xeta");
+        alert(e.message || "Xəta");
       }
     }
 
-    document.getElementById("adminLoginBtn").addEventListener("click", adminLoginClick);
-    document.getElementById("refreshBtn").addEventListener("click", loadRechargeRequests);
+    async function loadWithdrawRequests() {
+      const token = getAdminToken();
+      if (!token) return;
 
-    if (getAdminToken()) loadRechargeRequests();
+      const res = await fetch("/.netlify/functions/api/admin/withdraw-requests", {
+        headers: { Authorization: "Bearer " + token }
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || "Withdraw sorğuları alınmadı");
+
+      const rows = data.requests || [];
+      const box = document.getElementById("withdrawRequests");
+
+      if (!rows.length) {
+        box.innerHTML = `<div class="text-slate-500">Withdraw sorğusu yoxdur</div>`;
+        return;
+      }
+
+      box.innerHTML = rows.map(r => `
+        <div class="border rounded-xl p-3 bg-slate-50">
+          <div><b>ID:</b> ${r.id}</div>
+          <div><b>User:</b> ${esc(r.user_id)}</div>
+          <div><b>İstənən məbləğ:</b> ${money(r.request_amount)}</div>
+          <div><b>Vergi (15%):</b> ${money(r.tax_amount)}</div>
+          <div><b>Karta köçürüləcək:</b> ${money(r.payout_amount)}</div>
+          <div><b>Bank:</b> ${esc(r.bank_name)}</div>
+          <div><b>Kart:</b> ${esc(r.card_number)}</div>
+          <div><b>Sahib:</b> ${esc(r.card_holder)}</div>
+          <div><b>Status:</b> ${esc(r.status)}</div>
+          <div><b>Yaranma:</b> ${fmtDate(r.created_at)}</div>
+          <div class="mt-2 flex gap-2 ${r.status === "pending" ? "" : "hidden"}">
+            <button onclick="reviewWithdraw(${r.id}, 'approve')" class="bg-green-600 text-white rounded px-3 py-1">Approve</button>
+            <button onclick="reviewWithdraw(${r.id}, 'reject')" class="bg-red-600 text-white rounded px-3 py-1">Reject</button>
+          </div>
+        </div>
+      `).join("");
+    }
+
+    async function reviewWithdraw(id, action) {
+      try {
+        const token = getAdminToken();
+        const res = await fetch(`/.netlify/functions/api/admin/withdraw-requests/${id}`, {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: "Bearer " + token
+          },
+          body: JSON.stringify({ action })
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.error || "Withdraw review alınmadı");
+        alert("Çıxarış sorğusu yeniləndi");
+        await loadWithdrawRequests();
+        await loadUsers();
+      } catch (e) {
+        alert(e.message || "Xəta");
+      }
+    }
+
+    async function refreshAll() {
+      await loadUsers();
+      await loadRechargeRequests();
+      await loadWithdrawRequests();
+    }
+
+    document.getElementById("adminLoginBtn").addEventListener("click", adminLoginClick);
+    document.getElementById("refreshAllBtn").addEventListener("click", refreshAll);
+    document.getElementById("logoutBtn").addEventListener("click", () => {
+      clearAdminToken();
+      alert("Admin çıxış edildi");
+      document.getElementById("usersBox").innerHTML = "";
+      document.getElementById("rechargeRequests").innerHTML = "";
+      document.getElementById("withdrawRequests").innerHTML = "";
+    });
+
+    // token varsa auto load
+    if (getAdminToken()) refreshAll().catch((e) => alert(e.message || "Xəta"));
   </script>
 </body>
 </html>
