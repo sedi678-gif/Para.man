@@ -4,264 +4,104 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Para.man | Admin</title>
-  <style>
-    :root{
-      --bg:#0b1220;
-      --panel:#111a2e;
-      --card:#17233d;
-      --text:#e7eefc;
-      --muted:#9db0d1;
-      --accent:#4ea1ff;
-      --ok:#25c281;
-      --danger:#ff5d5d;
-      --border:#263656;
-    }
-    *{box-sizing:border-box}
-    body{
-      margin:0;
-      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
-      background:var(--bg);
-      color:var(--text);
-    }
-    .wrap{
-      max-width:1100px;
-      margin:0 auto;
-      padding:18px;
-    }
-    .top{
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      gap:10px;
-      flex-wrap:wrap;
-      margin-bottom:16px;
-    }
-    .title{font-size:1.35rem;font-weight:700}
-    .actions{display:flex;gap:8px;flex-wrap:wrap}
-    .btn{
-      border:none;
-      border-radius:10px;
-      padding:10px 14px;
-      cursor:pointer;
-      font-weight:700;
-    }
-    .btn-refresh{background:var(--accent);color:#041222}
-    .btn-reset{background:var(--danger);color:#fff}
-    .btn-home{background:#2a3758;color:var(--text);text-decoration:none;display:inline-flex;align-items:center}
-    .stats{
-      display:grid;
-      grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
-      gap:12px;
-      margin-bottom:14px;
-    }
-    .stat{
-      background:var(--card);
-      border:1px solid var(--border);
-      border-radius:12px;
-      padding:12px;
-    }
-    .stat .k{color:var(--muted);font-size:.92rem}
-    .stat .v{font-size:1.1rem;font-weight:700;margin-top:4px}
-    .panel{
-      background:var(--card);
-      border:1px solid var(--border);
-      border-radius:12px;
-      padding:14px;
-    }
-    table{
-      width:100%;
-      border-collapse:collapse;
-      margin-top:10px;
-      overflow:hidden;
-    }
-    th,td{
-      border-bottom:1px solid var(--border);
-      text-align:left;
-      padding:10px 8px;
-      font-size:.95rem;
-      vertical-align:top;
-    }
-    th{color:var(--muted);font-weight:600}
-    .muted{color:var(--muted)}
-    .badge{
-      display:inline-block;
-      padding:4px 8px;
-      border-radius:999px;
-      font-size:.8rem;
-      font-weight:700;
-      background:#2a3758;
-    }
-    .ok{background:rgba(37,194,129,.16);color:#7df0c0}
-    .warn{background:rgba(255,176,32,.16);color:#ffd18a}
-    .empty{
-      margin-top:10px;
-      color:var(--muted);
-    }
-  </style>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="auth.js"></script>
 </head>
-<body>
-  <main class="wrap">
-    <div class="top">
-      <div class="title">Admin panel</div>
-      <div class="actions">
-        <button class="btn btn-refresh" id="refreshBtn">Yenilə</button>
-        <button class="btn btn-reset" id="resetBtn">Demo sıfırla</button>
-        <a class="btn btn-home" href="./home.html">Ana səhifə</a>
-      </div>
+<body class="bg-slate-100 min-h-screen p-4">
+  <div class="max-w-6xl mx-auto">
+    <div id="loginBox" class="bg-white rounded-2xl p-4 shadow max-w-md mx-auto">
+      <h1 class="text-xl font-bold mb-2">Admin giriş</h1>
+      <p id="msg" class="text-red-500 text-sm min-h-[20px]"></p>
+      <input id="phone" class="w-full h-10 border rounded px-3 mb-2" placeholder="Admin telefon" />
+      <input id="pin" type="password" class="w-full h-10 border rounded px-3 mb-2" placeholder="Admin PIN" />
+      <button onclick="doLogin()" class="w-full h-10 rounded bg-black text-white">Daxil ol</button>
     </div>
 
-    <section class="stats">
-      <article class="stat">
-        <div class="k">İstifadəçi sayı</div>
-        <div class="v" id="userCount">1</div>
-      </article>
-      <article class="stat">
-        <div class="k">Balans</div>
-        <div class="v" id="balanceStat">₼0.00</div>
-      </article>
-      <article class="stat">
-        <div class="k">Alınan paket sayı</div>
-        <div class="v" id="pkgCount">0</div>
-      </article>
-      <article class="stat">
-        <div class="k">Status</div>
-        <div class="v"><span class="badge ok">Aktiv</span></div>
-      </article>
-    </section>
-
-    <section class="panel">
-      <h3 style="margin:0;">İstifadəçi məlumatı (demo)</h3>
-      <p class="muted" style="margin:8px 0 0;">
-        Bu versiyada məlumatlar <code>localStorage</code>-dan oxunur.
-      </p>
-
-      <table>
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Ad</th>
-            <th>Telefon</th>
-            <th>Balans</th>
-            <th>Alınan paketlər</th>
-            <th>Status</th>
-          </tr>
-        </thead>
-        <tbody id="userTableBody"></tbody>
-      </table>
-
-      <div id="emptyText" class="empty" style="display:none;">
-        Hələ paket alınmayıb.
+    <div id="panel" class="hidden">
+      <div class="flex justify-between items-center mb-3">
+        <h2 class="text-xl font-bold">İstifadəçilər</h2>
+        <div class="flex gap-2">
+          <button onclick="loadUsers()" class="px-3 py-2 rounded bg-emerald-600 text-white text-sm">Yenilə</button>
+          <button onclick="exitAdmin()" class="px-3 py-2 rounded bg-slate-600 text-white text-sm">Çıxış</button>
+        </div>
       </div>
-    </section>
-  </main>
+
+      <div class="overflow-auto bg-white rounded-2xl shadow">
+        <table class="min-w-full text-sm">
+          <thead class="bg-slate-800 text-white">
+            <tr>
+              <th class="p-2 text-left">ID</th>
+              <th class="p-2 text-left">Ad</th>
+              <th class="p-2 text-left">Telefon</th>
+              <th class="p-2 text-left">Balans</th>
+              <th class="p-2 text-left">Ref kod</th>
+              <th class="p-2 text-left">Dəvət edən</th>
+              <th class="p-2 text-left">IP</th>
+              <th class="p-2 text-left">Status</th>
+              <th class="p-2 text-left">Əməliyyat</th>
+            </tr>
+          </thead>
+          <tbody id="rows"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
 
   <script>
-    (function () {
-      const BALANCE_KEY = "pm_balance";
-      const PURCHASED_KEY = "pm_purchased";
-      const USER_KEY = "pm_user";
+    function esc(v) { return String(v ?? "").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
 
-      const balanceStat = document.getElementById("balanceStat");
-      const pkgCount = document.getElementById("pkgCount");
-      const userCount = document.getElementById("userCount");
-      const userTableBody = document.getElementById("userTableBody");
-      const emptyText = document.getElementById("emptyText");
-
-      const refreshBtn = document.getElementById("refreshBtn");
-      const resetBtn = document.getElementById("resetBtn");
-
-      function money(v) {
-        return "₼" + Number(v).toFixed(2);
+    async function doLogin() {
+      const msg = document.getElementById("msg");
+      msg.textContent = "";
+      try {
+        await adminLogin(
+          document.getElementById("phone").value.trim(),
+          document.getElementById("pin").value.trim()
+        );
+        document.getElementById("loginBox").classList.add("hidden");
+        document.getElementById("panel").classList.remove("hidden");
+        await loadUsers();
+      } catch (e) {
+        msg.textContent = e.message;
       }
+    }
 
-      function getBalance() {
-        const n = Number(localStorage.getItem(BALANCE_KEY));
-        return Number.isFinite(n) ? n : 0;
-      }
+    function exitAdmin() {
+      clearAdminToken();
+      location.reload();
+    }
 
-      function getPurchased() {
-        try {
-          const arr = JSON.parse(localStorage.getItem(PURCHASED_KEY) || "[]");
-          return Array.isArray(arr) ? arr : [];
-        } catch {
-          return [];
-        }
-      }
-
-      function getUser() {
-        try {
-          const u = JSON.parse(localStorage.getItem(USER_KEY) || "{}");
-          if (u && typeof u === "object") return u;
-          return {};
-        } catch {
-          return {};
-        }
-      }
-
-      function ensureDemoUser() {
-        if (!localStorage.getItem(USER_KEY)) {
-          localStorage.setItem(
-            USER_KEY,
-            JSON.stringify({
-              id: "U-1001",
-              name: "Demo User",
-              phone: "0500000000",
-              status: "active"
-            })
-          );
-        }
-        if (localStorage.getItem(BALANCE_KEY) === null) {
-          localStorage.setItem(BALANCE_KEY, "0");
-        }
-        if (!localStorage.getItem(PURCHASED_KEY)) {
-          localStorage.setItem(PURCHASED_KEY, "[]");
-        }
-      }
-
-      function render() {
-        const user = getUser();
-        const balance = getBalance();
-        const purchased = getPurchased();
-
-        balanceStat.textContent = money(balance);
-        pkgCount.textContent = String(purchased.length);
-        userCount.textContent = "1";
-
-        const statusBadge = user.status === "active"
-          ? '<span class="badge ok">Aktiv</span>'
-          : '<span class="badge warn">Passiv</span>';
-
-        const pkgText = purchased.length
-          ? purchased.join(", ")
-          : "Yoxdur";
-
-        userTableBody.innerHTML = `
-          <tr>
-            <td>${user.id || "U-1001"}</td>
-            <td>${user.name || "Demo User"}</td>
-            <td>${user.phone || "-"}</td>
-            <td>${money(balance)}</td>
-            <td>${pkgText}</td>
-            <td>${statusBadge}</td>
-          </tr>
+    async function loadUsers() {
+      const data = await adminGetUsers();
+      const tbody = document.getElementById("rows");
+      tbody.innerHTML = "";
+      (data.users || []).forEach(u => {
+        const tr = document.createElement("tr");
+        tr.className = "border-b";
+        tr.innerHTML = `
+          <td class="p-2">${esc(u.user_id)}</td>
+          <td class="p-2">${esc(u.name)}</td>
+          <td class="p-2">${esc(u.phone)}</td>
+          <td class="p-2">₼${Number(u.balance || 0).toFixed(2)}</td>
+          <td class="p-2">${esc(u.referral_code)}</td>
+          <td class="p-2">${esc(u.referred_by_code || "-")}</td>
+          <td class="p-2">${esc(u.register_ip || "-")}</td>
+          <td class="p-2">${u.is_banned ? "BAN" : "Aktiv"}</td>
+          <td class="p-2">
+            <button class="px-2 py-1 rounded text-white ${u.is_banned ? "bg-emerald-600" : "bg-red-600"}"
+              onclick="setBan('${esc(u.user_id)}', ${u.is_banned ? "false" : "true"})">
+              ${u.is_banned ? "Banı aç" : "Ban"}
+            </button>
+          </td>
         `;
-
-        emptyText.style.display = purchased.length ? "none" : "block";
-      }
-
-      refreshBtn.addEventListener("click", render);
-
-      resetBtn.addEventListener("click", function () {
-        if (!confirm("Demo məlumatlarını sıfırlamaq istəyirsən?")) return;
-        localStorage.setItem(BALANCE_KEY, "0");
-        localStorage.setItem(PURCHASED_KEY, "[]");
-        render();
-        alert("Sıfırlandı.");
+        tbody.appendChild(tr);
       });
+    }
 
-      ensureDemoUser();
-      render();
-    })();
+    async function setBan(uid, banned) {
+      await adminSetBan(uid, banned);
+      await loadUsers();
+    }
   </script>
 </body>
 </html>
