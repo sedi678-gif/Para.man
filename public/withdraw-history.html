@@ -4,12 +4,10 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Çıxarış Qeydləri</title>
+  <script src="auth.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
-  <style>
-    body { background: #eaf5f2; }
-  </style>
 </head>
-<body>
+<body class="bg-[#eaf5f2]">
   <main class="max-w-md mx-auto min-h-screen">
     <header class="bg-green-600 text-white px-4 py-4 flex items-center">
       <a href="my.html" class="text-3xl mr-4">←</a>
@@ -17,27 +15,42 @@
     </header>
 
     <section id="list" class="p-4 space-y-4"></section>
-    <section id="empty" class="hidden p-6 text-center text-slate-500">
-      Hələ çıxarış qeydi yoxdur.
-    </section>
+    <section id="empty" class="hidden p-6 text-center text-slate-500">Hələ çıxarış qeydi yoxdur.</section>
   </main>
 
   <script>
-    function formatDate(iso) {
+    function money(v){ return "₼" + Number(v || 0).toFixed(2); }
+    function fmt(iso){
       const d = new Date(iso);
-      const yyyy = d.getFullYear();
-      const mm = String(d.getMonth() + 1).padStart(2, "0");
-      const dd = String(d.getDate()).padStart(2, "0");
-      const hh = String(d.getHours()).padStart(2, "0");
-      const mi = String(d.getMinutes()).padStart(2, "0");
-      const ss = String(d.getSeconds()).padStart(2, "0");
-      return `${yyyy}-${mm}-${dd} ${hh}:${mi}:${ss}`;
+      const y = d.getFullYear();
+      const m = String(d.getMonth()+1).padStart(2,"0");
+      const day = String(d.getDate()).padStart(2,"0");
+      const hh = String(d.getHours()).padStart(2,"0");
+      const mm = String(d.getMinutes()).padStart(2,"0");
+      return `${y}-${m}-${day} ${hh}:${mm}`;
+    }
+    function statusAz(s){
+      if (s === "approved") return "Uğurlu";
+      if (s === "rejected") return "Rədd edildi";
+      return "Gözləyir";
+    }
+    function statusClass(s){
+      if (s === "approved") return "text-green-600";
+      if (s === "rejected") return "text-red-600";
+      return "text-amber-500";
     }
 
-    function loadHistory() {
-      let rows = [];
-      try { rows = JSON.parse(localStorage.getItem("pm_withdraw_history") || "[]"); } catch {}
+    async function init() {
+      const s = getSession();
+      if (!s?.token) return location.href = "index.html";
 
+      const res = await fetch("/.netlify/functions/api/my-withdraw-requests", {
+        headers: { Authorization: "Bearer " + s.token }
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || "Qeydlər alınmadı");
+
+      const rows = data.requests || [];
       const list = document.getElementById("list");
       const empty = document.getElementById("empty");
 
@@ -49,17 +62,23 @@
 
       empty.classList.add("hidden");
       list.innerHTML = rows.map(r => `
-        <article class="bg-white rounded-3xl p-5 shadow-sm flex items-center justify-between">
-          <div>
-            <div class="text-5xl font-extrabold text-slate-800">₼ ${Number(r.amount || 0).toFixed(0)}</div>
-            <div class="text-2xl text-slate-500 mt-2">${formatDate(r.createdAt)}</div>
+        <article class="bg-white rounded-3xl p-5 shadow-sm">
+          <div class="flex items-center justify-between">
+            <div class="text-4xl font-extrabold text-slate-800">${money(r.request_amount)}</div>
+            <div class="text-2xl font-bold ${statusClass(r.status)}">${statusAz(r.status)}</div>
           </div>
-          <div class="text-5xl font-extrabold text-yellow-500">${r.status || "Gözləyir"}</div>
+          <div class="text-slate-500 mt-2">${fmt(r.created_at)}</div>
+          <div class="text-sm text-slate-600 mt-2">
+            Vergi: ${money(r.tax_amount)} | Karta köçəcək: ${money(r.payout_amount)}
+          </div>
         </article>
       `).join("");
     }
 
-    loadHistory();
+    init().catch((e) => {
+      alert(e.message || "Xəta");
+      location.href = "my.html";
+    });
   </script>
 </body>
 </html>

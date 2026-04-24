@@ -3,63 +3,105 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Para.man | Çıxarış</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+  <title>Balansdan çıxarış</title>
   <script src="auth.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-slate-100 min-h-screen p-4">
   <main class="max-w-md mx-auto bg-white rounded-2xl p-5 shadow">
-    <h1 class="text-2xl font-bold mb-3">Balansdan çıxarış</h1>
-    <p id="balanceText" class="mb-3 text-slate-700">Balans: ₼0.00</p>
+    <h1 class="text-2xl font-bold mb-2">Balansdan çıxarış</h1>
+    <p id="balanceText" class="text-slate-700 mb-3">Balans: ₼0.00</p>
 
-    <input id="amount" type="number" min="1" class="w-full border rounded-xl p-3 mb-4" placeholder="Məbləğ" />
+    <input id="amount" type="number" min="20" class="w-full border rounded-xl p-3 mb-3" placeholder="Məbləğ (min 20)" />
 
-    <button id="withdrawBtn" class="w-full bg-blue-600 text-white rounded-xl py-3 font-semibold mb-2">
-      Çıxar
-    </button>
+    <div class="bg-slate-50 rounded-xl p-3 mb-3 text-sm">
+      <p>Vergi (15%): <b id="taxText">₼0.00</b></p>
+      <p>Karta köçəcək (85%): <b id="payoutText">₼0.00</b></p>
+      <p class="text-amber-700 mt-1">Qeyd: Çıxarışlar 24 saat ərzində admin tərəfindən təsdiqlənir.</p>
+    </div>
 
-    <a href="withdraw-history.html" class="block text-center text-blue-600 mb-2">Çıxarış qeydləri</a>
+    <button id="withdrawBtn" class="w-full bg-blue-600 text-white rounded-xl py-3 font-semibold mb-2">Çıxar</button>
+    <a href="withdraw-history.html" class="block text-center text-blue-600 mb-1">Çıxarış qeydləri</a>
     <a href="my.html" class="block text-center text-slate-600">Geri</a>
   </main>
 
   <script>
-    function money(v) { return "₼" + Number(v || 0).toFixed(2); }
+    function money(v){ return "₼" + Number(v || 0).toFixed(2); }
 
-    function saveWithdrawHistory(amount, status = "Gözləyir") {
-      const key = "pm_withdraw_history";
-      let arr = [];
-      try { arr = JSON.parse(localStorage.getItem(key) || "[]"); } catch {}
-      arr.unshift({
-        amount: Number(amount || 0),
-        status,
-        createdAt: new Date().toISOString()
-      });
-      localStorage.setItem(key, JSON.stringify(arr.slice(0, 100)));
+    function readCard() {
+      try { return JSON.parse(localStorage.getItem("pm_bank_card") || "null"); }
+      catch { return null; }
+    }
+
+    const amountInput = document.getElementById("amount");
+    const taxText = document.getElementById("taxText");
+    const payoutText = document.getElementById("payoutText");
+
+    function calcPreview() {
+      const amount = Number(amountInput.value || 0);
+      const tax = Number((amount * 0.15).toFixed(2));
+      const payout = Number((amount - tax).toFixed(2));
+      taxText.textContent = money(tax > 0 ? tax : 0);
+      payoutText.textContent = money(payout > 0 ? payout : 0);
     }
 
     async function init() {
       const s = getSession();
       if (!s?.token) return location.href = "index.html";
+
+      const card = readCard();
+      if (!card || !card.cardNumber) {
+        alert("Çıxarış üçün əvvəlcə bank kartı əlavə edin.");
+        location.href = "bank-card.html";
+        return;
+      }
+
       const me = await fetchMe();
       document.getElementById("balanceText").textContent = `Balans: ${money(me.balance)}`;
+      calcPreview();
     }
+
+    amountInput.addEventListener("input", calcPreview);
 
     document.getElementById("withdrawBtn").addEventListener("click", async () => {
       try {
-        const amount = Number(document.getElementById("amount").value || 0);
-        if (amount <= 0) throw new Error("Düzgün məbləğ daxil edin");
+        const s = getSession();
+        if (!s?.token) throw new Error("Sessiya yoxdur");
 
-        const newBal = await withdrawBalance(amount);
-        saveWithdrawHistory(amount, "Gözləyir");
+        const amount = Number(amountInput.value || 0);
+        if (amount < 20) throw new Error("Minimum çıxarış 20 AZN");
 
-        alert(`Çıxarış sorğusu yaradıldı: ${money(amount)}\nYeni balans: ${money(newBal)}`);
+        const card = readCard();
+        if (!card || !card.cardNumber) throw new Error("Bank kartı tələb olunur");
+
+        const res = await fetch("/.netlify/functions/api/withdraw/request", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer " + s.token
+          },
+          body: JSON.stringify({
+            requestAmount: amount,
+            cardHolder: card.holderName,
+            bankName: card.bankName,
+            cardNumber: card.cardNumber
+          })
+        });
+
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.error || "Sorğu göndərilmədi");
+
+        alert("Çıxarış sorğusu yaradıldı. Admin 24 saat ərzində təsdiqləyəcək.");
         location.href = "withdraw-history.html";
       } catch (e) {
         alert(e.message || "Xəta baş verdi");
       }
     });
 
-    init().catch(() => location.href = "index.html");
+    init().catch((e) => {
+      alert(e.message || "Xəta");
+      location.href = "index.html";
+    });
   </script>
 </body>
 </html>
