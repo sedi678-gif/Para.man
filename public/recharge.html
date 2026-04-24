@@ -28,21 +28,18 @@
       <input
         id="amount"
         type="number"
-        min="10"
-        value="10"
+        min="50"
+        value="50"
         class="w-full h-14 rounded-2xl border-2 border-sky-500 px-4 text-3xl font-bold mb-3"
       />
 
       <div class="grid grid-cols-3 gap-2 mb-5">
-        <button class="q h-12 rounded-xl bg-slate-100 font-bold text-xl" data-v="10">10</button>
-        <button class="q h-12 rounded-xl bg-slate-100 font-bold text-xl" data-v="15">15</button>
-        <button class="q h-12 rounded-xl bg-slate-100 font-bold text-xl" data-v="40">40</button>
-        <button class="q h-12 rounded-xl bg-slate-100 font-bold text-xl" data-v="90">90</button>
-        <button class="q h-12 rounded-xl bg-slate-100 font-bold text-xl" data-v="180">180</button>
-        <button class="q h-12 rounded-xl bg-slate-100 font-bold text-xl" data-v="360">360</button>
-        <button class="q h-12 rounded-xl bg-slate-100 font-bold text-xl" data-v="720">720</button>
-        <button class="q h-12 rounded-xl bg-slate-100 font-bold text-xl" data-v="1480">1480</button>
-        <button class="q h-12 rounded-xl bg-slate-100 font-bold text-xl" data-v="2880">2880</button>
+        <button class="q h-12 rounded-xl bg-slate-100 font-bold text-xl" data-v="50">50</button>
+        <button class="q h-12 rounded-xl bg-slate-100 font-bold text-xl" data-v="100">100</button>
+        <button class="q h-12 rounded-xl bg-slate-100 font-bold text-xl" data-v="200">200</button>
+        <button class="q h-12 rounded-xl bg-slate-100 font-bold text-xl" data-v="500">500</button>
+        <button class="q h-12 rounded-xl bg-slate-100 font-bold text-xl" data-v="1000">1000</button>
+        <button class="q h-12 rounded-xl bg-slate-100 font-bold text-xl" data-v="2000">2000</button>
       </div>
 
       <h3 class="text-4xl font-extrabold text-slate-700 mb-3">Yükləmə kanalı</h3>
@@ -52,11 +49,6 @@
         <input type="radio" name="pay_channel" value="payment-1" checked class="w-5 h-5 accent-sky-500" />
       </label>
 
-      <label class="h-14 rounded-2xl border border-slate-300 px-4 flex items-center justify-between bg-white mb-4 cursor-pointer">
-        <span class="text-3xl text-slate-700">Ödəniş-2</span>
-        <input type="radio" name="pay_channel" value="payment-2" class="w-5 h-5 accent-sky-500" />
-      </label>
-
       <button id="payBtn" class="w-full h-14 rounded-full bg-gradient-to-r from-cyan-500 to-blue-600 text-white text-3xl font-extrabold mb-4">
         İndi yüklə
       </button>
@@ -64,7 +56,7 @@
       <div class="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-4 text-slate-700 leading-7 text-sm">
         <p class="font-bold mb-2">Balans artırma təlimatları:</p>
         <p class="mb-2">1. Balans artırma saatları: saat 10:00-dan 22:00-dək.</p>
-        <p class="mb-2">2. Minimum məbləğ artırma: ₼10.</p>
+        <p class="mb-2">2. Minimum məbləğ artırma: ₼50.</p>
         <p class="mb-2">3. Çatdırılma vaxtı: vəsaitlər adətən 2-30 dəqiqəyə ərzində çatır.</p>
         <p>4. Uğurlu ödənişdən sonra ödəniş qəbzini dərhal yükləyin.</p>
       </div>
@@ -91,8 +83,8 @@
       const amount = Number(document.getElementById("amount").value || 0);
       const channel = document.querySelector("input[name='pay_channel']:checked")?.value || "payment-1";
 
-      if (amount < 10) {
-        alert("Minimum məbləğ ₼10 olmalıdır");
+      if (amount < 50) {
+        alert("Minimum məbləğ ₼50 olmalıdır");
         return;
       }
 
