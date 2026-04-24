@@ -214,7 +214,7 @@ exports.handler = async (event) => {
       return json(200, { balance: newBal });
     }
 
-    // RECHARGE
+    // RECHARGE (instant)
     if (method === "POST" && path === "/recharge") {
       const authUser = parseToken(event);
       const amount = Number(body.amount || 0);
@@ -228,7 +228,7 @@ exports.handler = async (event) => {
       return json(200, { balance: newBal });
     }
 
-    // WITHDRAW
+    // WITHDRAW (instant)
     if (method === "POST" && path === "/withdraw") {
       const authUser = parseToken(event);
       const amount = Number(body.amount || 0);
@@ -248,8 +248,8 @@ exports.handler = async (event) => {
     // USER: recharge request create (admin approval lazimdir)
     if (method === "POST" && path === "/recharge/request") {
       const authUser = parseToken(event);
-      const amount = Number(body.amount || 0);
-      const paidAmount = Number(body.paidAmount || 0);
+      const amount = Number(body.amount || 0);          // secilen mebleg
+      const paidAmount = Number(body.paidAmount || 0);  // qebzde yazilan
       const channel = String(body.channel || "").trim();
       const receiptUrl = String(body.receiptUrl || "").trim();
 
@@ -274,6 +274,60 @@ exports.handler = async (event) => {
 
       if (insErr) return json(500, { error: "Sorqu yaradilmadi" });
       return json(200, { ok: true, status: "pending" });
+    }
+
+    // USER: withdraw request create (admin approval lazimdir)
+    if (method === "POST" && path === "/withdraw/request") {
+      const authUser = parseToken(event);
+      const requestAmount = Number(body.requestAmount || 0);
+      const cardHolder = String(body.cardHolder || "").trim();
+      const bankName = String(body.bankName || "").trim();
+      const cardNumber = String(body.cardNumber || "").trim();
+
+      if (requestAmount < 20) return json(400, { error: "Minimum cixaris 20 AZN" });
+      if (!cardHolder || !bankName || !cardNumber) return json(400, { error: "Kart melumatlari tam deyil" });
+
+      const { data: u } = await supabase
+        .from("users")
+        .select("balance")
+        .eq("user_id", authUser.uid)
+        .maybeSingle();
+
+      if (!u) return json(404, { error: "User tapilmadi" });
+
+      const bal = Number(u.balance || 0);
+      if (requestAmount > bal) return json(400, { error: "Balans kifayet deyil" });
+
+      const taxAmount = Number((requestAmount * 0.15).toFixed(2));
+      const payoutAmount = Number((requestAmount - taxAmount).toFixed(2));
+
+      // pending sorqu yaradanda balansdan requestAmount cixir
+      const newBal = Number((bal - requestAmount).toFixed(2));
+      await supabase.from("users").update({ balance: newBal }).eq("user_id", authUser.uid);
+
+      const { error: insErr } = await supabase
+        .from("withdraw_requests")
+        .insert({
+          user_id: authUser.uid,
+          request_amount: requestAmount,
+          tax_amount: taxAmount,
+          payout_amount: payoutAmount,
+          card_holder: cardHolder,
+          bank_name: bankName,
+          card_number: cardNumber,
+          status: "pending"
+        });
+
+      if (insErr) return json(500, { error: "Cixaris sorqusu yaradilmadi" });
+
+      return json(200, {
+        ok: true,
+        status: "pending",
+        requestAmount,
+        taxAmount,
+        payoutAmount,
+        balance: newBal
+      });
     }
 
     // TREASURE PROMO REDEEM
@@ -379,7 +433,7 @@ exports.handler = async (event) => {
       if (authUser.role !== "admin") return json(403, { error: "Yalniz admin" });
 
       const id = Number(path.replace("/admin/recharge-requests/", ""));
-      const action = String(body.action || "").trim();
+      const action = String(body.action || "").trim(); // approve | reject
       const note = String(body.note || "").trim();
 
       if (!id || !["approve", "reject"].includes(action)) {
@@ -422,6 +476,95 @@ exports.handler = async (event) => {
 
       await supabase
         .from("recharge_requests")
+        .update({
+          status: "rejected",
+          reviewed_at: new Date().toISOString(),
+          reviewed_by: "ADMIN",
+          note
+        })
+        .eq("id", id);
+
+      return json(200, { ok: true, status: "rejected" });
+    }
+
+    // USER: own withdraw requests
+    if (method === "GET" && path === "/my-withdraw-requests") {
+      const authUser = parseToken(event);
+
+      const { data, error } = await supabase
+        .from("withdraw_requests")
+        .select("*")
+        .eq("user_id", authUser.uid)
+        .order("id", { ascending: false });
+
+      if (error) return json(500, { error: "Cixaris sorqulari alinmadi" });
+      return json(200, { requests: data || [] });
+    }
+
+    // ADMIN: list withdraw requests
+    if (method === "GET" && path === "/admin/withdraw-requests") {
+      const authUser = parseToken(event);
+      if (authUser.role !== "admin") return json(403, { error: "Yalniz admin" });
+
+      const { data, error } = await supabase
+        .from("withdraw_requests")
+        .select("*")
+        .order("id", { ascending: false });
+
+      if (error) return json(500, { error: "Sorqular getirilemedi" });
+      return json(200, { requests: data || [] });
+    }
+
+    // ADMIN: review withdraw request
+    if (method === "PATCH" && path.startsWith("/admin/withdraw-requests/")) {
+      const authUser = parseToken(event);
+      if (authUser.role !== "admin") return json(403, { error: "Yalniz admin" });
+
+      const id = Number(path.replace("/admin/withdraw-requests/", ""));
+      const action = String(body.action || "").trim();
+      const note = String(body.note || "").trim();
+
+      if (!id || !["approve", "reject"].includes(action)) {
+        return json(400, { error: "Yanlis parametr" });
+      }
+
+      const { data: reqRow } = await supabase
+        .from("withdraw_requests")
+        .select("*")
+        .eq("id", id)
+        .maybeSingle();
+
+      if (!reqRow) return json(404, { error: "Sorqu tapilmadi" });
+      if (reqRow.status !== "pending") return json(400, { error: "Sorqu artiq baxilib" });
+
+      if (action === "approve") {
+        await supabase
+          .from("withdraw_requests")
+          .update({
+            status: "approved",
+            reviewed_at: new Date().toISOString(),
+            reviewed_by: "ADMIN",
+            note
+          })
+          .eq("id", id);
+
+        return json(200, { ok: true, status: "approved" });
+      }
+
+      // reject olarsa user balans geri qaytar
+      const { data: u } = await supabase
+        .from("users")
+        .select("balance")
+        .eq("user_id", reqRow.user_id)
+        .maybeSingle();
+
+      if (u) {
+        const refundBal = Number((Number(u.balance || 0) + Number(reqRow.request_amount || 0)).toFixed(2));
+        await supabase.from("users").update({ balance: refundBal }).eq("user_id", reqRow.user_id);
+      }
+
+      await supabase
+        .from("withdraw_requests")
         .update({
           status: "rejected",
           reviewed_at: new Date().toISOString(),
