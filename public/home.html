@@ -8,7 +8,7 @@
   <script src="auth.js"></script>
   <style>
     body { padding-bottom: 78px; }
-    .bottom-nav a.active { color: #22d3ee; font-weight: 700; }
+    .bottom-nav a.active { color: #16a34a; font-weight: 700; }
   </style>
 </head>
 <body class="bg-slate-100 min-h-screen">
@@ -24,23 +24,23 @@
         <a class="px-3 py-2 rounded-lg bg-blue-600 text-white text-center" href="withdraw.html">💳 Çıxar</a>
         <a class="px-3 py-2 rounded-lg bg-fuchsia-600 text-white text-center" href="service.html">🎯 Xidmət</a>
         <a class="px-3 py-2 rounded-lg bg-indigo-600 text-white text-center" href="app.html">📱 Tətbiq</a>
-        <a class="px-3 py-2 rounded-lg bg-slate-700 text-white text-center" href="admin.html">🔐 Admin</a>
+        <a id="adminLink" class="px-3 py-2 rounded-lg bg-slate-700 text-white text-center hidden" href="admin.html">🔐 Admin</a>
       </div>
 
-      <div class="mt-3 bg-slate-800 text-white rounded-xl p-3">
-        Referans kod: <b id="refCode">Yüklənir...</b>
+      <div id="refBox" class="mt-3 bg-slate-800 text-white rounded-xl p-3 hidden">
+        Referans kod: <b id="refCode"></b>
       </div>
     </section>
 
     <section id="cards" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4"></section>
   </main>
 
-  <nav class="bottom-nav fixed bottom-0 left-0 right-0 bg-[#0f172a] text-white border-t border-slate-700 flex justify-around py-3 z-50">
-    <a href="home.html" class="active">🏠 Ana səhifə</a>
-    <a href="products.html">🛍️ Məhsullarım</a>
-    <a href="treasury.html">🏛️ Xəzinə</a>
-    <a href="share.html">📣 Paylaş</a>
-    <a href="my.html">👤 Mənim</a>
+  <nav class="bottom-nav fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 flex justify-around py-3 z-50">
+    <a href="home.html" class="active">🏠<div class="text-xs">Ana səhifə</div></a>
+    <a href="products.html">🛍️<div class="text-xs">Məhsullarım</div></a>
+    <a href="treasury.html">🏛️<div class="text-xs">Xəzinə</div></a>
+    <a href="share.html">📣<div class="text-xs">Paylaş</div></a>
+    <a href="my.html">👤<div class="text-xs">Mənim</div></a>
   </nav>
 
   <script>
@@ -53,7 +53,7 @@
       { id: "para6", name: "Para 6", price: 2000, daily: 200, total: 20000, days: 100 }
     ];
 
-    function money(v) { return "₼" + Number(v).toFixed(2); }
+    function money(v) { return "₼" + Number(v || 0).toFixed(2); }
 
     function getOwned() {
       try { return JSON.parse(localStorage.getItem("pm_owned_packages") || "[]"); }
@@ -66,10 +66,23 @@
     async function loadHeader() {
       const s = getSession();
       if (!s?.token) { location.href = "index.html"; return; }
+
       const me = await fetchMe();
       document.getElementById("balanceText").textContent = `Balans: ${money(me.balance || 0)}`;
-      document.getElementById("refCode").textContent = me.referralCode || "Yoxdur";
-      return Number(me.balance || 0);
+
+      const refCode = me.referral_code || me.referralCode || "";
+      const refBox = document.getElementById("refBox");
+      const refText = document.getElementById("refCode");
+      if (refCode) {
+        refText.textContent = refCode;
+        refBox.classList.remove("hidden");
+      } else {
+        refBox.classList.add("hidden");
+      }
+
+      const adminLink = document.getElementById("adminLink");
+      if (me.role === "admin") adminLink.classList.remove("hidden");
+      else adminLink.classList.add("hidden");
     }
 
     function renderCards() {

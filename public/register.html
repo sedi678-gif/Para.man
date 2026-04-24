@@ -45,6 +45,16 @@
       phoneInput.value = phoneInput.value.replace(/\D/g, "").slice(0, 9);
     });
 
+    // share linkdən gələn ?ref= avtomatik dolsun
+    (function autoFillRef() {
+      const p = new URLSearchParams(location.search);
+      const ref = (p.get("ref") || "").trim().toUpperCase();
+      if (ref) {
+        const el = document.getElementById("referral");
+        if (el) el.value = ref;
+      }
+    })();
+
     document.getElementById("registerBtn").addEventListener("click", async () => {
       try {
         const name = document.getElementById("name").value.trim();
@@ -61,7 +71,7 @@
         await registerUser({ name, phone, password, password2, referralCode });
         location.href = "home.html";
       } catch (e) {
-        alert(e.message);
+        alert(e.message || "Xəta");
       }
     });
   </script>

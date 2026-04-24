@@ -9,11 +9,7 @@
   <style>
     body { padding-bottom: 82px; background: #f1f2f6; }
     .bottom-nav a.active { color: #16a34a; font-weight: 700; }
-    .glass {
-      background: rgba(0, 0, 0, 0.2);
-      backdrop-filter: blur(3px);
-      -webkit-backdrop-filter: blur(3px);
-    }
+    .glass { background: rgba(0, 0, 0, 0.2); backdrop-filter: blur(3px); }
   </style>
 </head>
 <body>
@@ -47,49 +43,19 @@
       </div>
     </section>
 
-    <section class="px-4 mt-4">
-      <div class="relative rounded-2xl overflow-hidden shadow-lg">
-        <img src="https://images.unsplash.com/photo-1563013544-824ae1b704d3?auto=format&fit=crop&w=1200&q=60"
-             class="w-full h-36 object-cover" alt="money"/>
-        <div class="absolute inset-0 bg-red-900/50"></div>
-        <div class="absolute inset-0 p-3 text-white">
-          <h3 class="text-center text-3xl font-extrabold mb-2">Yüklə & Çıxar</h3>
-          <div class="grid grid-cols-2 gap-2 text-center">
-            <a href="recharge.html" class="py-2">
-              <div class="text-4xl">🧾</div><div class="text-2xl font-bold">Yüklə</div>
-            </a>
-            <a href="withdraw.html" class="py-2">
-              <div class="text-4xl">💵</div><div class="text-2xl font-bold">Çıxar</div>
-            </a>
-          </div>
-        </div>
-      </div>
+    <section class="px-4 mt-4 bg-white rounded-2xl p-4 shadow">
+      <h3 class="text-lg font-bold mb-2">Komanda söhbəti</h3>
+      <p>Komanda ölçüsü: <b id="teamCount">0</b></p>
+      <div id="teamList" class="mt-2 text-sm text-slate-600 space-y-1"></div>
     </section>
 
     <section class="px-4 mt-4 space-y-3">
-      <a href="bank-card.html" class="block bg-yellow-400 rounded-2xl px-4 py-4 text-white font-bold text-2xl shadow">
-        💳 Bank kartı <span class="float-right">&gt;</span>
-      </a>
-
-      <a href="recharge-history.html" class="block bg-yellow-400 rounded-2xl px-4 py-4 text-white font-bold text-2xl shadow">
-        🧾 Yükləmə qeydi <span class="float-right">&gt;</span>
-      </a>
-
-      <a href="balance-details.html" class="block bg-yellow-400 rounded-2xl px-4 py-4 text-white font-bold text-2xl shadow">
-        📈 Balans detalları <span class="float-right">&gt;</span>
-      </a>
-
-      <a href="withdraw-history.html" class="block bg-yellow-400 rounded-2xl px-4 py-4 text-white font-bold text-2xl shadow">
-        ⬆️ Çıxarış qeydləri <span class="float-right">&gt;</span>
-      </a>
-
-      <a href="service.html" class="block bg-yellow-400 rounded-2xl px-4 py-4 text-white font-bold text-2xl shadow">
-        🎯 Xidmət mərkəzi <span class="float-right">&gt;</span>
-      </a>
-
-      <button id="logoutBtn" class="w-full bg-red-500 rounded-2xl px-4 py-4 text-left text-white font-bold text-2xl shadow">
-        ⎋ Çıxış <span class="float-right">&gt;</span>
-      </button>
+      <a href="bank-card.html" class="block bg-yellow-400 rounded-2xl px-4 py-4 text-white font-bold text-2xl shadow">💳 Bank kartı <span class="float-right">&gt;</span></a>
+      <a href="recharge-history.html" class="block bg-yellow-400 rounded-2xl px-4 py-4 text-white font-bold text-2xl shadow">🧾 Yükləmə qeydi <span class="float-right">&gt;</span></a>
+      <a href="balance-details.html" class="block bg-yellow-400 rounded-2xl px-4 py-4 text-white font-bold text-2xl shadow">📈 Balans detalları <span class="float-right">&gt;</span></a>
+      <a href="withdraw-history.html" class="block bg-yellow-400 rounded-2xl px-4 py-4 text-white font-bold text-2xl shadow">⬆️ Çıxarış qeydləri <span class="float-right">&gt;</span></a>
+      <a href="service.html" class="block bg-yellow-400 rounded-2xl px-4 py-4 text-white font-bold text-2xl shadow">🎯 Xidmət mərkəzi <span class="float-right">&gt;</span></a>
+      <button id="logoutBtn" class="w-full bg-red-500 rounded-2xl px-4 py-4 text-left text-white font-bold text-2xl shadow">⎋ Çıxış <span class="float-right">&gt;</span></button>
     </section>
   </main>
 
@@ -104,8 +70,9 @@
   <script>
     function money(v){ return "₼" + Number(v || 0).toFixed(2); }
 
-    function readArr(key) {
-      try { return JSON.parse(localStorage.getItem(key) || "[]"); } catch { return []; }
+    function readArr(key){
+      try { return JSON.parse(localStorage.getItem(key) || "[]"); }
+      catch { return []; }
     }
 
     async function initMyPage() {
@@ -118,9 +85,19 @@
 
       const rechargeSum = readArr("pm_recharge_history").reduce((a,b)=>a + Number(b.amount||0), 0);
       const withdrawSum = readArr("pm_withdraw_history").reduce((a,b)=>a + Number(b.amount||0), 0);
-
       document.getElementById("totalRecharge").textContent = money(rechargeSum);
       document.getElementById("totalWithdraw").textContent = money(withdrawSum);
+
+      const refs = await fetchMyReferrals();
+      const teamCount = Array.isArray(refs) ? refs.length : 0;
+      document.getElementById("teamCount").textContent = teamCount;
+
+      const list = document.getElementById("teamList");
+      if (!teamCount) {
+        list.innerHTML = "<div>Komanda yoxdur</div>";
+      } else {
+        list.innerHTML = refs.map(r => `<div>• ${(r.name || "-")} (${(r.phone || "-")})</div>`).join("");
+      }
     }
 
     document.getElementById("logoutBtn").addEventListener("click", () => {
