@@ -6,71 +6,106 @@
   <title>Para.man | Yüklə</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="auth.js"></script>
-  <style>body{padding-bottom:78px}.bottom-nav a.active{color:#22d3ee;font-weight:700}</style>
+  <style>
+    body { padding-bottom: 78px; background: #f2f3f7; }
+    .bottom-nav a.active { color: #16a34a; font-weight: 700; }
+  </style>
 </head>
-<body class="bg-slate-100 min-h-screen">
-  <main class="max-w-md mx-auto p-4">
-    <div class="bg-white rounded-2xl shadow p-5">
-      <h1 class="text-2xl font-bold mb-2">Balansı artır</h1>
-      <p id="needInfo" class="text-sm text-slate-500 mb-4">Hesaba məbləğ yükləyin.</p>
+<body>
+  <main class="max-w-md mx-auto px-4 pt-4">
+    <h1 class="text-center text-3xl font-extrabold text-green-700 mb-4">Balansı artır</h1>
 
-      <div id="balanceText" class="font-semibold mb-3">Balans: ₼0.00</div>
+    <section class="bg-white rounded-2xl shadow p-4 mb-4">
+      <p class="text-slate-600 mb-2">Mövcud balans:</p>
+      <p id="balanceText" class="text-2xl font-bold mb-4">₼0.00</p>
 
-      <input id="amount" type="number" min="1" class="w-full border rounded-xl p-3 mb-4" value="50" />
+      <label class="block text-sm mb-2">Məbləğ</label>
+      <input
+        id="amount"
+        type="number"
+        min="1"
+        class="w-full border rounded-xl p-3 mb-4"
+        placeholder="Məs: 10"
+      />
 
       <div class="grid grid-cols-4 gap-2 mb-4">
+        <button class="q bg-slate-200 rounded-lg py-2" data-v="10">10</button>
+        <button class="q bg-slate-200 rounded-lg py-2" data-v="20">20</button>
         <button class="q bg-slate-200 rounded-lg py-2" data-v="50">50</button>
         <button class="q bg-slate-200 rounded-lg py-2" data-v="100">100</button>
-        <button class="q bg-slate-200 rounded-lg py-2" data-v="200">200</button>
-        <button class="q bg-slate-200 rounded-lg py-2" data-v="500">500</button>
       </div>
 
-      <button id="payBtn" class="w-full bg-emerald-600 text-white rounded-xl py-3 font-semibold">İndi yüklə</button>
-    </div>
+      <button
+        id="payBtn"
+        class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-xl"
+      >
+        İndi yüklə
+      </button>
+    </section>
   </main>
 
-  <nav class="bottom-nav fixed bottom-0 left-0 right-0 bg-[#0f172a] text-white border-t border-slate-700 flex justify-around py-3 z-50">
-    <a href="home.html">🏠 Ana səhifə</a>
-    <a href="products.html">🛍️ Məhsullarım</a>
-    <a href="treasury.html">🏛️ Xəzinə</a>
-    <a href="share.html">📣 Paylaş</a>
-    <a href="my.html" class="active">👤 Mənim</a>
+  <nav class="bottom-nav fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 flex justify-around py-3 z-50">
+    <a href="home.html">🏠<div class="text-xs">Ana səhifə</div></a>
+    <a href="products.html">🛍️<div class="text-xs">Məhsullarım</div></a>
+    <a href="treasury.html">🏛️<div class="text-xs">Xəzinə</div></a>
+    <a href="share.html">📣<div class="text-xs">Paylaş</div></a>
+    <a href="my.html" class="active">👤<div class="text-xs">Mənim</div></a>
   </nav>
 
   <script>
-    function money(v){return "₼"+Number(v).toFixed(2)}
+    function money(v) {
+      return "₼" + Number(v || 0).toFixed(2);
+    }
 
-    document.querySelectorAll(".q").forEach(b=>{
-      b.addEventListener("click",()=>{document.getElementById("amount").value=b.dataset.v;});
+    function saveRechargeHistory(amount, status = "Gözləyir") {
+      const key = "pm_recharge_history";
+      let arr = [];
+      try { arr = JSON.parse(localStorage.getItem(key) || "[]"); } catch {}
+      arr.unshift({
+        amount: Number(amount || 0),
+        status,
+        createdAt: new Date().toISOString()
+      });
+      localStorage.setItem(key, JSON.stringify(arr.slice(0, 100)));
+    }
+
+    document.querySelectorAll(".q").forEach(btn => {
+      btn.addEventListener("click", () => {
+        document.getElementById("amount").value = btn.dataset.v;
+      });
     });
+
+    async function init() {
+      const s = getSession();
+      if (!s?.token) {
+        location.href = "index.html";
+        return;
+      }
+      const me = await fetchMe();
+      document.getElementById("balanceText").textContent = money(me.balance);
+    }
 
     document.getElementById("payBtn").addEventListener("click", async () => {
       try {
         const amount = Number(document.getElementById("amount").value || 0);
         if (amount <= 0) throw new Error("Düzgün məbləğ daxil edin");
+
         const newBalance = await rechargeBalance(amount);
-        alert(`Balans artırıldı. Yeni balans: ${money(newBalance)}`);
-        location.href = "home.html";
-      } catch (e) { alert(e.message || "Xəta"); }
+
+        // Qeyd əlavə et
+        saveRechargeHistory(amount, "Gözləyir");
+
+        alert(`Yükləmə sorğusu yaradıldı: ${money(amount)}\nYeni balans: ${money(newBalance)}`);
+        location.href = "recharge-history.html";
+      } catch (e) {
+        alert(e.message || "Xəta baş verdi");
+      }
     });
 
-    (async function init(){
-      try{
-        const me = await fetchMe();
-        document.getElementById("balanceText").textContent = `Balans: ${money(me.balance||0)}`;
-
-        const p = new URLSearchParams(location.search);
-        const need = Number(p.get("need") || 0);
-        const pkg = p.get("pkg") || "";
-        if (need > 0) {
-          document.getElementById("needInfo").textContent = `Bu paketi almaq üçün əlavə ${money(need)} lazımdır${pkg ? ` (${pkg})` : ""}.`;
-          document.getElementById("amount").value = String(Math.ceil(need));
-        }
-      }catch(e){
-        alert(e.message||"Xəta");
-        location.href="index.html";
-      }
-    })();
+    init().catch((e) => {
+      alert(e.message || "Xəta");
+      location.href = "index.html";
+    });
   </script>
 </body>
 </html>
