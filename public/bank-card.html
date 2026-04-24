@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bank kartı</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>body{background:#f3f4f6}</style>
+</head>
+<body>
+  <main class="max-w-md mx-auto min-h-screen">
+    <header class="sticky top-0 bg-white border-b border-slate-200 px-4 py-4 flex items-center gap-3">
+      <a href="my.html" class="text-2xl">←</a>
+      <h1 class="text-xl font-bold mx-auto pr-7">Bank kartı</h1>
+    </header>
+
+    <section class="p-4 space-y-3">
+      <input id="holderName" class="w-full h-12 rounded-xl border border-slate-300 px-4" placeholder="Kart sahibi adı" />
+      <input id="bankName" class="w-full h-12 rounded-xl border border-slate-300 px-4" placeholder="Bank adı" />
+      <input id="cardNumber" class="w-full h-12 rounded-xl border border-slate-300 px-4" placeholder="Kart nömrəsi" maxlength="16" inputmode="numeric" />
+
+      <button id="saveBtn" class="w-full h-12 rounded-full bg-green-600 text-white font-bold text-lg">Təsdiqlə</button>
+      <p id="infoText" class="text-sm text-slate-600"></p>
+    </section>
+  </main>
+
+  <div id="lockModal" class="fixed inset-0 bg-black/40 hidden items-center justify-center p-4">
+    <div class="bg-white rounded-xl p-4 max-w-sm w-full shadow-xl">
+      <p>Bank məlumatlarını dəyişmək üçün müştəri xidməti ilə əlaqə saxlayın.</p>
+      <button id="closeModal" class="mt-4 w-full h-10 rounded-lg bg-slate-800 text-white">Bağla</button>
+    </div>
+  </div>
+
+  <script>
+    const CARD_KEY = "pm_bank_card";
+    const holderName = document.getElementById("holderName");
+    const bankName = document.getElementById("bankName");
+    const cardNumber = document.getElementById("cardNumber");
+    const saveBtn = document.getElementById("saveBtn");
+    const infoText = document.getElementById("infoText");
+    const lockModal = document.getElementById("lockModal");
+
+    function getSavedCard() {
+      try { return JSON.parse(localStorage.getItem(CARD_KEY) || "null"); } catch { return null; }
+    }
+    function setSavedCard(data) { localStorage.setItem(CARD_KEY, JSON.stringify(data)); }
+
+    function maskCard(num) {
+      const d = String(num || "").replace(/\D/g, "");
+      if (d.length < 8) return d;
+      return d.slice(0,4) + " **** **** " + d.slice(-4);
+    }
+
+    function lockForm(card) {
+      holderName.value = card.holderName || "";
+      bankName.value = card.bankName || "";
+      cardNumber.value = maskCard(card.cardNumber || "");
+      holderName.readOnly = true; bankName.readOnly = true; cardNumber.readOnly = true;
+      saveBtn.textContent = "Təsdiqləndi";
+      saveBtn.className = "w-full h-12 rounded-full bg-slate-400 text-white font-bold text-lg";
+      infoText.textContent = "Kart məlumatı təsdiqlənib.";
+    }
+
+    function openModal() { lockModal.classList.remove("hidden"); lockModal.classList.add("flex"); }
+    function closeModal(){ lockModal.classList.add("hidden"); lockModal.classList.remove("flex"); }
+
+    cardNumber.addEventListener("input", () => {
+      cardNumber.value = cardNumber.value.replace(/\D/g, "").slice(0,16);
+    });
+
+    const existing = getSavedCard();
+    if (existing) {
+      lockForm(existing);
+      [holderName, bankName, cardNumber, saveBtn].forEach(el => {
+        el.addEventListener("click", (e) => { e.preventDefault(); openModal(); });
+      });
+    } else {
+      saveBtn.addEventListener("click", () => {
+        const holder = holderName.value.trim();
+        const bank = bankName.value.trim();
+        const card = cardNumber.value.trim();
+
+        if (!holder || !bank || !card) return alert("Bütün sahələri doldurun.");
+        if (card.length !== 16) return alert("Kart nömrəsi 16 rəqəm olmalıdır.");
+
+        setSavedCard({ holderName: holder, bankName: bank, cardNumber: card, createdAt: new Date().toISOString() });
+        lockForm(getSavedCard());
+        alert("Kart uğurla əlavə olundu.");
+      });
+    }
+
+    document.getElementById("closeModal").addEventListener("click", closeModal);
+    lockModal.addEventListener("click", (e) => { if (e.target === lockModal) closeModal(); });
+  </script>
+</body>
+</html>

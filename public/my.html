@@ -18,16 +18,11 @@
 </head>
 <body>
   <main class="max-w-md mx-auto pb-4">
-    <!-- Header bg -->
     <section class="relative">
-      <img
-        src="https://images.unsplash.com/photo-1501139083538-0139583c060f?auto=format&fit=crop&w=1200&q=60"
-        alt="bg"
-        class="w-full h-44 object-cover"
-      />
+      <img src="https://images.unsplash.com/photo-1501139083538-0139583c060f?auto=format&fit=crop&w=1200&q=60"
+           class="w-full h-44 object-cover" alt="bg" />
     </section>
 
-    <!-- Profile card -->
     <section class="-mt-10 px-4">
       <div class="bg-gradient-to-r from-red-600 to-orange-500 rounded-2xl p-4 shadow-xl text-white">
         <div class="glass rounded-xl px-4 py-3 flex items-center justify-between">
@@ -52,46 +47,40 @@
       </div>
     </section>
 
-    <!-- Recharge / Withdraw quick -->
     <section class="px-4 mt-4">
       <div class="relative rounded-2xl overflow-hidden shadow-lg">
-        <img
-          src="https://images.unsplash.com/photo-1563013544-824ae1b704d3?auto=format&fit=crop&w=1200&q=60"
-          alt="money"
-          class="w-full h-36 object-cover"
-        />
+        <img src="https://images.unsplash.com/photo-1563013544-824ae1b704d3?auto=format&fit=crop&w=1200&q=60"
+             class="w-full h-36 object-cover" alt="money"/>
         <div class="absolute inset-0 bg-red-900/50"></div>
         <div class="absolute inset-0 p-3 text-white">
           <h3 class="text-center text-3xl font-extrabold mb-2">Yüklə & Çıxar</h3>
           <div class="grid grid-cols-2 gap-2 text-center">
             <a href="recharge.html" class="py-2">
-              <div class="text-4xl">🧾</div>
-              <div class="text-2xl font-bold">Yüklə</div>
+              <div class="text-4xl">🧾</div><div class="text-2xl font-bold">Yüklə</div>
             </a>
             <a href="withdraw.html" class="py-2">
-              <div class="text-4xl">💵</div>
-              <div class="text-2xl font-bold">Çıxar</div>
+              <div class="text-4xl">💵</div><div class="text-2xl font-bold">Çıxar</div>
             </a>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- Menu list -->
+    <!-- Sənin dediyin menyu hissəsi -->
     <section class="px-4 mt-4 space-y-3">
-      <a href="#" class="block bg-yellow-400 rounded-2xl px-4 py-4 text-white font-bold text-2xl shadow">
+      <a href="bank-card.html" class="block bg-yellow-400 rounded-2xl px-4 py-4 text-white font-bold text-2xl shadow">
         💳&nbsp; Bank kartı <span class="float-right">&gt;</span>
       </a>
 
-      <a href="#" class="block bg-yellow-400 rounded-2xl px-4 py-4 text-white font-bold text-2xl shadow">
+      <a href="recharge-history.html" class="block bg-yellow-400 rounded-2xl px-4 py-4 text-white font-bold text-2xl shadow">
         🧾&nbsp; Yükləmə qeydi <span class="float-right">&gt;</span>
       </a>
 
-      <a href="#" class="block bg-yellow-400 rounded-2xl px-4 py-4 text-white font-bold text-2xl shadow">
+      <a href="balance-details.html" class="block bg-yellow-400 rounded-2xl px-4 py-4 text-white font-bold text-2xl shadow">
         📈&nbsp; Balans detalları <span class="float-right">&gt;</span>
       </a>
 
-      <a href="#" class="block bg-yellow-400 rounded-2xl px-4 py-4 text-white font-bold text-2xl shadow">
+      <a href="withdraw-history.html" class="block bg-yellow-400 rounded-2xl px-4 py-4 text-white font-bold text-2xl shadow">
         ⬆️&nbsp; Çıxarış qeydləri <span class="float-right">&gt;</span>
       </a>
 
@@ -105,7 +94,6 @@
     </section>
   </main>
 
-  <!-- Bottom nav -->
   <nav class="bottom-nav fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 flex justify-around py-3 z-50">
     <a href="home.html">🏠<div class="text-xs">Ana səhifə</div></a>
     <a href="products.html">🛍️<div class="text-xs">Məhsullarım</div></a>
@@ -115,33 +103,17 @@
   </nav>
 
   <script>
-    function money(v) {
-      return "₼" + Number(v || 0).toFixed(2);
-    }
+    function money(v){ return "₼" + Number(v || 0).toFixed(2); }
 
     async function initMyPage() {
       const s = getSession();
-      if (!s?.token) {
-        location.href = "index.html";
-        return;
-      }
+      if (!s?.token) return location.href = "index.html";
 
       const me = await fetchMe();
-
-      // phone
-      const p = me.phone || "";
-      document.getElementById("phoneText").textContent = p || "+994 000110000";
-
-      // balans
+      document.getElementById("phoneText").textContent = me.phone || "+994 000110000";
       document.getElementById("balText").textContent = money(me.balance || 0);
-
-      // Sadə demo statistikalar (backenddə ayrıca field yoxdursa 0 qalır)
-      // İstəsən sonradan API-dən ayrıca total recharge/withdraw gətirərik.
-      const totalRecharge = Number(me.total_recharge || 0);
-      const totalWithdraw = Number(me.total_withdraw || 0);
-
-      document.getElementById("totalRecharge").textContent = money(totalRecharge);
-      document.getElementById("totalWithdraw").textContent = money(totalWithdraw);
+      document.getElementById("totalRecharge").textContent = money(me.total_recharge || 0);
+      document.getElementById("totalWithdraw").textContent = money(me.total_withdraw || 0);
     }
 
     document.getElementById("logoutBtn").addEventListener("click", () => {
@@ -149,10 +121,7 @@
       location.href = "index.html";
     });
 
-    initMyPage().catch((e) => {
-      alert(e.message || "Xəta baş verdi");
-      location.href = "index.html";
-    });
+    initMyPage().catch(() => location.href = "index.html");
   </script>
 </body>
 </html>
