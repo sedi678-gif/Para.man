@@ -6,216 +6,132 @@
   <title>Para.man | Ana səhifə</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="auth.js"></script>
+  <style>
+    body { padding-bottom: 78px; }
+    .bottom-nav a.active { color: #22d3ee; font-weight: 700; }
+  </style>
 </head>
-<body class="min-h-screen bg-[#e8eaee] text-slate-800 font-sans">
-  <div class="max-w-[390px] mx-auto min-h-screen pb-24">
-    <!-- Top user info -->
-    <div class="px-3 pt-3 text-center text-xs text-slate-600 space-y-1">
-      <p id="userText"></p>
-      <p id="balText" class="text-emerald-600 font-bold">Balans: ₼0.00</p>
-      <div class="flex items-center justify-center gap-3">
-        <button onclick="logout()" class="text-emerald-700 underline text-[11px]">Çıxış</button>
-        <a href="admin.html" class="text-[11px] text-amber-700 underline">Admin panel</a>
-      </div>
-    </div>
-
-    <!-- Banner -->
-    <header class="px-3 pt-2 space-y-2">
-      <div
-        class="h-24 rounded-lg shadow bg-cover bg-center"
-        style="background-image: linear-gradient(rgba(0,0,0,.35), rgba(0,0,0,.35)), url('./bg.jpg');"
-      ></div>
-
-      <div class="h-8 rounded-md bg-red-500 text-white text-xs px-3 flex items-center gap-2 shadow">
-        <span>🔔</span><span>Yükle ₼50 və bonus qazan</span>
+<body class="bg-slate-100 min-h-screen">
+  <main class="max-w-5xl mx-auto p-4">
+    <section class="bg-white rounded-2xl shadow p-4 mb-4">
+      <div class="flex flex-wrap items-center justify-between gap-2">
+        <h1 class="text-xl font-bold">Ana səhifə</h1>
+        <div id="balanceText" class="font-semibold">Balans: ₼0.00</div>
       </div>
 
-      <!-- Quick menu -->
-      <div class="rounded-lg overflow-hidden bg-[#0d3b30] text-white shadow">
-        <div class="h-14 px-2 grid grid-cols-5 items-center text-[10px]">
-          <a href="recharge.html" class="text-center">🟢<div>Yüklə</div></a>
-          <a href="withdraw.html" class="text-center">💳<div>Çıxar</div></a>
-          <a href="service.html" class="text-center">🎯<div>Xidmət</div></a>
-          <button type="button" onclick="dailyBonus()" class="text-center">✅<div>Daxil ol</div></button>
-          <a href="app.html" class="text-center">📱<div>Tətbiq</div></a>
-        </div>
+      <div class="mt-3 grid grid-cols-2 sm:grid-cols-5 gap-2 text-sm">
+        <a class="px-3 py-2 rounded-lg bg-emerald-600 text-white text-center" href="recharge.html">🟢 Yüklə</a>
+        <a class="px-3 py-2 rounded-lg bg-blue-600 text-white text-center" href="withdraw.html">💳 Çıxar</a>
+        <a class="px-3 py-2 rounded-lg bg-fuchsia-600 text-white text-center" href="service.html">🎯 Xidmət</a>
+        <a class="px-3 py-2 rounded-lg bg-indigo-600 text-white text-center" href="app.html">📱 Tətbiq</a>
+        <a class="px-3 py-2 rounded-lg bg-slate-700 text-white text-center" href="admin.html">🔐 Admin</a>
       </div>
-    </header>
 
-    <!-- Products -->
-    <main class="px-3 mt-3 space-y-3">
-      <!-- Para 1 -->
-      <section class="bg-white rounded-xl shadow p-3">
-        <div class="flex gap-3">
-          <div class="w-12 h-12 rounded-lg bg-slate-100 shrink-0"></div>
-          <div class="flex-1">
-            <div class="flex justify-between items-start gap-2">
-              <h3 class="font-bold text-sm">Para 1</h3>
-              <span class="text-[10px] text-rose-500 bg-rose-50 px-2 py-[2px] rounded-full">Kvota 0 / 1</span>
-            </div>
-            <p class="text-xs text-slate-500">Müddət: 100 gün</p>
-            <div class="mt-1 flex justify-between text-xs">
-              <p><span class="text-emerald-600 font-semibold">₼ 5</span><br><span class="text-slate-400">Gündəlik gəlir</span></p>
-              <p class="text-right"><span class="text-emerald-600 font-semibold">₼ 500</span><br><span class="text-slate-400">Ümumi gəlir</span></p>
-            </div>
-          </div>
-        </div>
-        <button onclick="goRecharge()" class="mt-3 w-full h-8 rounded-full text-white text-sm font-semibold bg-gradient-to-r from-yellow-400 to-amber-500">
-          Al ₼ 50
-        </button>
-      </section>
+      <div class="mt-3 bg-slate-800 text-white rounded-xl p-3">
+        Referans kod: <b id="refCode">Yüklənir...</b>
+      </div>
+    </section>
 
-      <!-- Para 2 -->
-      <section class="bg-white rounded-xl shadow p-3">
-        <div class="flex gap-3">
-          <div class="w-12 h-12 rounded-lg bg-slate-100 shrink-0"></div>
-          <div class="flex-1">
-            <div class="flex justify-between items-start gap-2">
-              <h3 class="font-bold text-sm">Para 2</h3>
-              <span class="text-[10px] text-rose-500 bg-rose-50 px-2 py-[2px] rounded-full">Kvota 0 / 1</span>
-            </div>
-            <p class="text-xs text-slate-500">Müddət: 100 gün</p>
-            <div class="mt-1 flex justify-between text-xs">
-              <p><span class="text-emerald-600 font-semibold">₼ 10</span><br><span class="text-slate-400">Gündəlik gəlir</span></p>
-              <p class="text-right"><span class="text-emerald-600 font-semibold">₼ 1,000</span><br><span class="text-slate-400">Ümumi gəlir</span></p>
-            </div>
-          </div>
-        </div>
-        <button onclick="goRecharge()" class="mt-3 w-full h-8 rounded-full text-white text-sm font-semibold bg-gradient-to-r from-yellow-400 to-amber-500">
-          Al ₼ 100
-        </button>
-      </section>
+    <section id="cards" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4"></section>
+  </main>
 
-      <!-- Para 3 -->
-      <section class="bg-white rounded-xl shadow p-3">
-        <div class="flex gap-3">
-          <div class="w-12 h-12 rounded-lg bg-slate-100 shrink-0"></div>
-          <div class="flex-1">
-            <div class="flex justify-between items-start gap-2">
-              <h3 class="font-bold text-sm">Para 3</h3>
-              <span class="text-[10px] text-rose-500 bg-rose-50 px-2 py-[2px] rounded-full">Kvota 0 / 1</span>
-            </div>
-            <p class="text-xs text-slate-500">Müddət: 100 gün</p>
-            <div class="mt-1 flex justify-between text-xs">
-              <p><span class="text-emerald-600 font-semibold">₼ 20</span><br><span class="text-slate-400">Gündəlik gəlir</span></p>
-              <p class="text-right"><span class="text-emerald-600 font-semibold">₼ 2,000</span><br><span class="text-slate-400">Ümumi gəlir</span></p>
-            </div>
-          </div>
-        </div>
-        <button onclick="goRecharge()" class="mt-3 w-full h-8 rounded-full text-white text-sm font-semibold bg-gradient-to-r from-yellow-400 to-amber-500">
-          Al ₼ 200
-        </button>
-      </section>
-
-      <!-- Para 4 -->
-      <section class="bg-white rounded-xl shadow p-3">
-        <div class="flex gap-3">
-          <div class="w-12 h-12 rounded-lg bg-slate-100 shrink-0"></div>
-          <div class="flex-1">
-            <div class="flex justify-between items-start gap-2">
-              <h3 class="font-bold text-sm">Para 4</h3>
-              <span class="text-[10px] text-rose-500 bg-rose-50 px-2 py-[2px] rounded-full">Kvota 0 / 1</span>
-            </div>
-            <p class="text-xs text-slate-500">Müddət: 100 gün</p>
-            <div class="mt-1 flex justify-between text-xs">
-              <p><span class="text-emerald-600 font-semibold">₼ 50</span><br><span class="text-slate-400">Gündəlik gəlir</span></p>
-              <p class="text-right"><span class="text-emerald-600 font-semibold">₼ 5,000</span><br><span class="text-slate-400">Ümumi gəlir</span></p>
-            </div>
-          </div>
-        </div>
-        <button onclick="goRecharge()" class="mt-3 w-full h-8 rounded-full text-white text-sm font-semibold bg-gradient-to-r from-yellow-400 to-amber-500">
-          Al ₼ 500
-        </button>
-      </section>
-
-      <!-- Para 5 -->
-      <section class="bg-white rounded-xl shadow p-3">
-        <div class="flex gap-3">
-          <div class="w-12 h-12 rounded-lg bg-slate-100 shrink-0"></div>
-          <div class="flex-1">
-            <div class="flex justify-between items-start gap-2">
-              <h3 class="font-bold text-sm">Para 5</h3>
-              <span class="text-[10px] text-rose-500 bg-rose-50 px-2 py-[2px] rounded-full">Kvota 0 / 1</span>
-            </div>
-            <p class="text-xs text-slate-500">Müddət: 100 gün</p>
-            <div class="mt-1 flex justify-between text-xs">
-              <p><span class="text-emerald-600 font-semibold">₼ 100</span><br><span class="text-slate-400">Gündəlik gəlir</span></p>
-              <p class="text-right"><span class="text-emerald-600 font-semibold">₼ 10,000</span><br><span class="text-slate-400">Ümumi gəlir</span></p>
-            </div>
-          </div>
-        </div>
-        <button onclick="goRecharge()" class="mt-3 w-full h-8 rounded-full text-white text-sm font-semibold bg-gradient-to-r from-yellow-400 to-amber-500">
-          Al ₼ 1,000
-        </button>
-      </section>
-
-      <!-- Para 6 -->
-      <section class="bg-white rounded-xl shadow p-3">
-        <div class="flex gap-3">
-          <div class="w-12 h-12 rounded-lg bg-slate-100 shrink-0"></div>
-          <div class="flex-1">
-            <div class="flex justify-between items-start gap-2">
-              <h3 class="font-bold text-sm">Para 6</h3>
-              <span class="text-[10px] text-rose-500 bg-rose-50 px-2 py-[2px] rounded-full">Kvota 0 / 1</span>
-            </div>
-            <p class="text-xs text-slate-500">Müddət: 100 gün</p>
-            <div class="mt-1 flex justify-between text-xs">
-              <p><span class="text-emerald-600 font-semibold">₼ 200</span><br><span class="text-slate-400">Gündəlik gəlir</span></p>
-              <p class="text-right"><span class="text-emerald-600 font-semibold">₼ 20,000</span><br><span class="text-slate-400">Ümumi gəlir</span></p>
-            </div>
-          </div>
-        </div>
-        <button onclick="goRecharge()" class="mt-3 w-full h-8 rounded-full text-white text-sm font-semibold bg-gradient-to-r from-yellow-400 to-amber-500">
-          Al ₼ 2,000
-        </button>
-      </section>
-    </main>
-  </div>
-
-  <!-- Bottom menu -->
-  <nav class="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[390px] bg-white/95 border-t border-slate-200 z-40">
-    <ul class="h-14 grid grid-cols-5 text-[10px] text-slate-500">
-      <li class="flex flex-col items-center justify-center text-emerald-600 font-semibold">🏠<span>Ana səhifə</span></li>
-      <li class="flex flex-col items-center justify-center">🛍️<span>Məhsullarım</span></li>
-      <li class="flex flex-col items-center justify-center">🏰<span>Xəzinə</span></li>
-      <li class="flex flex-col items-center justify-center">📣<span>Paylaş</span></li>
-      <li class="flex flex-col items-center justify-center">👤<span>Mənim</span></li>
-    </ul>
+  <nav class="bottom-nav fixed bottom-0 left-0 right-0 bg-[#0f172a] text-white border-t border-slate-700 flex justify-around py-3 z-50">
+    <a href="home.html" class="active">🏠 Ana səhifə</a>
+    <a href="products.html">🛍️ Məhsullarım</a>
+    <a href="treasury.html">🏛️ Xəzinə</a>
+    <a href="share.html">📣 Paylaş</a>
+    <a href="my.html">👤 Mənim</a>
   </nav>
 
   <script>
-    function logout() {
-      clearSession();
-      location.href = "index.html";
+    const packages = [
+      { id: "para1", name: "Para 1", price: 50, daily: 5, total: 500, days: 100 },
+      { id: "para2", name: "Para 2", price: 100, daily: 10, total: 1000, days: 100 },
+      { id: "para3", name: "Para 3", price: 200, daily: 20, total: 2000, days: 100 },
+      { id: "para4", name: "Para 4", price: 500, daily: 50, total: 5000, days: 100 },
+      { id: "para5", name: "Para 5", price: 1000, daily: 100, total: 10000, days: 100 },
+      { id: "para6", name: "Para 6", price: 2000, daily: 200, total: 20000, days: 100 }
+    ];
+
+    function money(v) { return "₼" + Number(v).toFixed(2); }
+
+    function getOwned() {
+      try { return JSON.parse(localStorage.getItem("pm_owned_packages") || "[]"); }
+      catch { return []; }
+    }
+    function setOwned(arr) {
+      localStorage.setItem("pm_owned_packages", JSON.stringify(arr));
     }
 
-    function goRecharge() {
-      location.href = "recharge.html";
-    }
-
-    async function dailyBonus() {
-      try {
-        const bal = await claimDailyBonus();
-        document.getElementById("balText").textContent = `Balans: ₼${Number(bal).toFixed(2)}`;
-        alert("Gündəlik +1 AZN əlavə olundu.");
-      } catch (e) {
-        alert(e.message);
-      }
-    }
-
-    async function loadUser() {
+    async function loadHeader() {
       const s = getSession();
-      if (!s?.token) return (location.href = "index.html");
-
+      if (!s?.token) { location.href = "index.html"; return; }
       const me = await fetchMe();
-      document.getElementById("userText").textContent = `${me.name} · ${me.phone} · ${me.user_id}`;
-      document.getElementById("balText").textContent = `Balans: ₼${Number(me.balance).toFixed(2)}`;
+      document.getElementById("balanceText").textContent = `Balans: ${money(me.balance || 0)}`;
+      document.getElementById("refCode").textContent = me.referralCode || "Yoxdur";
+      return Number(me.balance || 0);
     }
 
-    loadUser().catch((e) => {
-      alert(e.message);
-      logout();
-    });
+    function renderCards() {
+      const owned = getOwned();
+      const el = document.getElementById("cards");
+
+      el.innerHTML = packages.map(p => {
+        const isOwned = owned.includes(p.id);
+        return `
+          <article class="bg-white rounded-2xl shadow p-4">
+            <h3 class="text-lg font-bold mb-1">${p.name}</h3>
+            <p class="text-sm text-slate-500">Müddət: ${p.days} gün</p>
+            <p class="text-sm">Gündəlik gəlir: <b>${money(p.daily)}</b></p>
+            <p class="text-sm mb-3">Ümumi gəlir: <b>${money(p.total)}</b></p>
+            <button class="buyBtn w-full py-2 rounded-lg ${isOwned ? "bg-slate-300 text-slate-700" : "bg-blue-600 text-white"}"
+                    data-id="${p.id}" data-price="${p.price}" ${isOwned ? "disabled" : ""}>
+              ${isOwned ? "Alınıb" : "Al " + money(p.price)}
+            </button>
+          </article>
+        `;
+      }).join("");
+
+      document.querySelectorAll(".buyBtn").forEach(btn => {
+        btn.addEventListener("click", async () => {
+          try {
+            const pkgId = btn.dataset.id;
+            const price = Number(btn.dataset.price || 0);
+
+            const me = await fetchMe();
+            const balance = Number(me.balance || 0);
+
+            if (balance < price) {
+              location.href = `recharge.html?need=${encodeURIComponent(price - balance)}&pkg=${encodeURIComponent(pkgId)}`;
+              return;
+            }
+
+            const newBalance = await withdrawBalance(price);
+            const arr = getOwned();
+            if (!arr.includes(pkgId)) {
+              arr.push(pkgId);
+              setOwned(arr);
+            }
+
+            document.getElementById("balanceText").textContent = `Balans: ${money(newBalance)}`;
+            alert("Paket alındı");
+            renderCards();
+          } catch (e) {
+            alert(e.message || "Xəta");
+          }
+        });
+      });
+    }
+
+    (async function init() {
+      try {
+        await loadHeader();
+        renderCards();
+      } catch (e) {
+        alert(e.message || "Xəta");
+        location.href = "index.html";
+      }
+    })();
   </script>
 </body>
 </html>

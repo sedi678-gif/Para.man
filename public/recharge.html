@@ -6,6 +6,7 @@
   <title>Para.man | Yüklə</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="auth.js"></script>
+  <style>body{padding-bottom:78px}.bottom-nav a.active{color:#22d3ee;font-weight:700}</style>
 </head>
 <body class="bg-slate-100 min-h-screen">
   <main class="max-w-md mx-auto p-4">
@@ -24,41 +25,24 @@
         <button class="q bg-slate-200 rounded-lg py-2" data-v="500">500</button>
       </div>
 
-      <button id="payBtn" class="w-full bg-emerald-600 text-white rounded-xl py-3 font-semibold mb-2">
-        İndi yüklə
-      </button>
-      <a href="home.html" class="block text-center text-blue-600">Geri</a>
+      <button id="payBtn" class="w-full bg-emerald-600 text-white rounded-xl py-3 font-semibold">İndi yüklə</button>
     </div>
   </main>
 
+  <nav class="bottom-nav fixed bottom-0 left-0 right-0 bg-[#0f172a] text-white border-t border-slate-700 flex justify-around py-3 z-50">
+    <a href="home.html">🏠 Ana səhifə</a>
+    <a href="products.html">🛍️ Məhsullarım</a>
+    <a href="treasury.html">🏛️ Xəzinə</a>
+    <a href="share.html">📣 Paylaş</a>
+    <a href="my.html" class="active">👤 Mənim</a>
+  </nav>
+
   <script>
-    function money(v) { return "₼" + Number(v).toFixed(2); }
+    function money(v){return "₼"+Number(v).toFixed(2)}
 
-    document.querySelectorAll(".q").forEach(btn => {
-      btn.addEventListener("click", () => {
-        document.getElementById("amount").value = btn.dataset.v;
-      });
+    document.querySelectorAll(".q").forEach(b=>{
+      b.addEventListener("click",()=>{document.getElementById("amount").value=b.dataset.v;});
     });
-
-    async function init() {
-      const s = getSession();
-      if (!s?.token) {
-        location.href = "index.html";
-        return;
-      }
-
-      const me = await fetchMe();
-      document.getElementById("balanceText").textContent = `Balans: ${money(me.balance || 0)}`;
-
-      const p = new URLSearchParams(location.search);
-      const need = Number(p.get("need") || 0);
-      const pkg = p.get("pkg") || "";
-      if (need > 0) {
-        document.getElementById("needInfo").textContent =
-          `Bu paketi almaq üçün əlavə ${money(need)} lazımdır${pkg ? ` (${pkg})` : ""}.`;
-        document.getElementById("amount").value = String(Math.ceil(need));
-      }
-    }
 
     document.getElementById("payBtn").addEventListener("click", async () => {
       try {
@@ -67,15 +51,26 @@
         const newBalance = await rechargeBalance(amount);
         alert(`Balans artırıldı. Yeni balans: ${money(newBalance)}`);
         location.href = "home.html";
-      } catch (e) {
-        alert(e.message);
-      }
+      } catch (e) { alert(e.message || "Xəta"); }
     });
 
-    init().catch((e) => {
-      alert(e.message);
-      location.href = "index.html";
-    });
+    (async function init(){
+      try{
+        const me = await fetchMe();
+        document.getElementById("balanceText").textContent = `Balans: ${money(me.balance||0)}`;
+
+        const p = new URLSearchParams(location.search);
+        const need = Number(p.get("need") || 0);
+        const pkg = p.get("pkg") || "";
+        if (need > 0) {
+          document.getElementById("needInfo").textContent = `Bu paketi almaq üçün əlavə ${money(need)} lazımdır${pkg ? ` (${pkg})` : ""}.`;
+          document.getElementById("amount").value = String(Math.ceil(need));
+        }
+      }catch(e){
+        alert(e.message||"Xəta");
+        location.href="index.html";
+      }
+    })();
   </script>
 </body>
 </html>

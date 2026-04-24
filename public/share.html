@@ -1,0 +1,19 @@
+<!DOCTYPE html><html lang="az"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Para.man | Paylaş</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="auth.js"></script>
+<style>body{padding-bottom:78px}.bottom-nav a.active{color:#22d3ee;font-weight:700}</style>
+</head><body class="bg-slate-100 min-h-screen">
+<main class="max-w-xl mx-auto p-4"><div class="bg-white rounded-2xl shadow p-5">
+<h1 class="text-2xl font-bold mb-3">Paylaş</h1>
+<p class="mb-2">Sənin referans kodun: <b id="refCode">Yüklənir...</b></p>
+<p class="text-slate-600">Dostlarını dəvət et.</p>
+</div></main>
+<nav class="bottom-nav fixed bottom-0 left-0 right-0 bg-[#0f172a] text-white border-t border-slate-700 flex justify-around py-3 z-50">
+<a href="home.html">🏠 Ana səhifə</a><a href="products.html">🛍️ Məhsullarım</a><a href="treasury.html">🏛️ Xəzinə</a><a href="share.html" class="active">📣 Paylaş</a><a href="my.html">👤 Mənim</a>
+</nav>
+<script>
+(async function(){ try{ const me=await fetchMe(); document.getElementById("refCode").textContent=me.referralCode||"Yoxdur"; }catch{ document.getElementById("refCode").textContent="Yoxdur"; } })();
+</script>
+</body></html>
