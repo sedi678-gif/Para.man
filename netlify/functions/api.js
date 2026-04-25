@@ -195,7 +195,7 @@ exports.handler = async (event) => {
       return json(200, { user });
     }
 
-    // DAILY BONUS
+    // DAILY BONUS / DAILY INCOME CLAIM
     if (method === "POST" && path === "/daily-bonus") {
       const authUser = parseToken(event);
       const today = new Date().toISOString().slice(0, 10);
@@ -207,14 +207,23 @@ exports.handler = async (event) => {
         .maybeSingle();
 
       if (!u) return json(404, { error: "Tapilmadi" });
-      if (u.last_claim_date === today) return json(400, { error: "Bu gun bonus artiq goturulub" });
+      if (u.last_claim_date === today) return json(400, { error: "Bu gun artiq goturulub" });
 
-      const newBal = Number(u.balance || 0) + 1;
-      await supabase.from("users").update({ balance: newBal, last_claim_date: today }).eq("user_id", authUser.uid);
-      return json(200, { balance: newBal });
+      const amount = Number(body.amount || 0);
+      if (!Number.isFinite(amount) || amount <= 0) {
+        return json(400, { error: "Mebleg duzgun deyil" });
+      }
+
+      const newBal = Number(u.balance || 0) + amount;
+      await supabase
+        .from("users")
+        .update({ balance: newBal, last_claim_date: today })
+        .eq("user_id", authUser.uid);
+
+      return json(200, { balance: newBal, claimed: amount, date: today });
     }
 
-    // RECHARGE (instant legacy)
+    // RECHARGE (legacy instant)
     if (method === "POST" && path === "/recharge") {
       const authUser = parseToken(event);
       const amount = Number(body.amount || 0);
@@ -228,7 +237,7 @@ exports.handler = async (event) => {
       return json(200, { balance: newBal });
     }
 
-    // WITHDRAW (instant legacy)
+    // WITHDRAW (legacy instant)
     if (method === "POST" && path === "/withdraw") {
       const authUser = parseToken(event);
       const amount = Number(body.amount || 0);
@@ -301,6 +310,7 @@ exports.handler = async (event) => {
       const taxAmount = Number((requestAmount * 0.15).toFixed(2));
       const payoutAmount = Number((requestAmount - taxAmount).toFixed(2));
 
+      // request yaradanda balansdan çıxılır (bloklanır)
       const newBal = Number((bal - requestAmount).toFixed(2));
       await supabase.from("users").update({ balance: newBal }).eq("user_id", authUser.uid);
 
@@ -435,7 +445,7 @@ exports.handler = async (event) => {
       if (authUser.role !== "admin") return json(403, { error: "Yalniz admin" });
 
       const id = Number(path.replace("/admin/recharge-requests/", ""));
-      const action = String(body.action || "").trim(); // approve | reject
+      const action = String(body.action || "").trim();
       const note = String(body.note || "").trim();
 
       if (!id || !["approve", "reject"].includes(action)) {
@@ -462,7 +472,6 @@ exports.handler = async (event) => {
 
         const rechargeAmount = Number(reqRow.amount || 0);
         const newBal = Number(u.balance || 0) + rechargeAmount;
-
         await supabase.from("users").update({ balance: newBal }).eq("user_id", reqRow.user_id);
 
         // 20% referral bonus
@@ -563,7 +572,7 @@ exports.handler = async (event) => {
         return json(200, { ok: true, status: "approved" });
       }
 
-      // reject olarsa user balans geri qaytar
+      // reject => refund balance
       const { data: u } = await supabase
         .from("users")
         .select("balance")
