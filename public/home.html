@@ -70,6 +70,7 @@
       const me = await fetchMe();
       document.getElementById("balanceText").textContent = `Balans: ${money(me.balance || 0)}`;
 
+      // ref kod boşdursa göstərmə
       const refCode = me.referral_code || me.referralCode || "";
       const refBox = document.getElementById("refBox");
       const refText = document.getElementById("refCode");
@@ -80,6 +81,7 @@
         refBox.classList.add("hidden");
       }
 
+      // admin link yalnız adminə
       const adminLink = document.getElementById("adminLink");
       if (me.role === "admin") adminLink.classList.remove("hidden");
       else adminLink.classList.add("hidden");
@@ -136,10 +138,39 @@
       });
     }
 
+    async function claimDailyPackageIncome() {
+      const owned = getOwned();
+      if (!owned.length) return;
+
+      const map = { para1: 5, para2: 10, para3: 20, para4: 50, para5: 100, para6: 200 };
+      const totalDaily = owned.reduce((sum, id) => sum + Number(map[id] || 0), 0);
+      if (totalDaily <= 0) return;
+
+      const s = getSession();
+      if (!s?.token) return;
+
+      const res = await fetch("/.netlify/functions/api/daily-bonus", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer " + s.token
+        },
+        body: JSON.stringify({ amount: totalDaily })
+      });
+
+      const data = await res.json().catch(() => ({}));
+
+      if (res.ok && Number.isFinite(Number(data.balance))) {
+        document.getElementById("balanceText").textContent = `Balans: ${money(data.balance)}`;
+      }
+      // bu gun artiq goturulubsa sakit keç
+    }
+
     (async function init() {
       try {
         await loadHeader();
         renderCards();
+        await claimDailyPackageIncome();
       } catch (e) {
         alert(e.message || "Xəta");
         location.href = "index.html";
