@@ -3,86 +3,145 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Para.man | Mənim</title>
+  <title>Para.man | Menim kabinet</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="auth.js"></script>
   <style>
-    body { padding-bottom: 82px; background: #f1f2f6; }
-    .bottom-nav a.active { color: #16a34a; font-weight: 700; }
-    .glass { background: rgba(0, 0, 0, 0.2); backdrop-filter: blur(3px); }
+    :root {
+      --bg1: #0f172a;
+      --bg2: #111827;
+      --card: rgba(255, 255, 255, 0.12);
+      --stroke: rgba(255, 255, 255, 0.2);
+      --txt: #e2e8f0;
+      --muted: #cbd5e1;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--txt);
+      padding-bottom: 92px;
+      background:
+        radial-gradient(900px 420px at 15% -10%, rgba(168, 85, 247, 0.26), transparent 60%),
+        radial-gradient(900px 420px at 85% -10%, rgba(34, 211, 238, 0.22), transparent 60%),
+        linear-gradient(160deg, var(--bg1), var(--bg2));
+    }
+    .glass {
+      background: var(--card);
+      border: 1px solid var(--stroke);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      box-shadow: 0 16px 36px rgba(2, 6, 23, 0.34);
+    }
+    .chip {
+      border: 1px solid rgba(255, 255, 255, 0.24);
+      background: rgba(255, 255, 255, 0.08);
+      color: #f8fafc;
+    }
+    .menu-link {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      border-radius: 16px;
+      padding: 14px 16px;
+      color: #fff;
+      font-weight: 700;
+      letter-spacing: .1px;
+      transition: transform .2s ease, opacity .2s ease;
+    }
+    .menu-link:hover { transform: translateY(-2px); opacity: .95; }
+    .bottom-nav {
+      background: rgba(15, 23, 42, 0.9);
+      border-top: 1px solid rgba(255, 255, 255, 0.12);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+    .bottom-nav a {
+      color: #cbd5e1;
+      font-weight: 500;
+      text-align: center;
+      transition: all .2s ease;
+    }
+    .bottom-nav a.active {
+      color: #34d399;
+      font-weight: 700;
+      transform: translateY(-1px);
+    }
   </style>
 </head>
 <body>
-  <main class="max-w-md mx-auto pb-4">
-    <section class="relative">
-      <img
-        src="https://images.unsplash.com/photo-1501139083538-0139583c060f?auto=format&fit=crop&w=1200&q=60"
-        class="w-full h-44 object-cover"
-        alt="bg"
-      />
-    </section>
-
-    <section class="-mt-10 px-4">
-      <div class="bg-gradient-to-r from-red-600 to-orange-500 rounded-2xl p-4 shadow-xl text-white">
-        <div class="glass rounded-xl px-4 py-3 flex items-center justify-between">
-          <div id="phoneText" class="font-bold text-lg sm:text-xl md:text-2xl">+994 000110000</div>
-          <div class="text-xl">🧑‍💼</div>
+  <main class="max-w-md mx-auto p-4">
+    <!-- Top profile card -->
+    <section class="glass rounded-3xl p-4">
+      <div class="flex items-center justify-between gap-3">
+        <div>
+          <div class="text-sm text-slate-300">Hesab</div>
+          <div id="phoneText" class="text-2xl font-black tracking-wide">+994000000000</div>
         </div>
+        <div class="chip rounded-xl px-3 py-2 text-sm">👤 Aktiv</div>
+      </div>
 
-        <div class="grid grid-cols-3 gap-2 text-center mt-4">
-          <div>
-            <div
-              id="balText"
-              class="font-extrabold leading-tight whitespace-nowrap tabular-nums text-lg sm:text-xl md:text-2xl"
-            >
-              ₼0
-            </div>
-            <div class="text-xs sm:text-sm opacity-90">Mənim balansım</div>
-          </div>
-          <div>
-            <div
-              id="totalRecharge"
-              class="font-extrabold leading-tight whitespace-nowrap tabular-nums text-lg sm:text-xl md:text-2xl"
-            >
-              ₼0
-            </div>
-            <div class="text-xs sm:text-sm opacity-90">Yüklə</div>
-          </div>
-          <div>
-            <div
-              id="totalWithdraw"
-              class="font-extrabold leading-tight whitespace-nowrap tabular-nums text-lg sm:text-xl md:text-2xl"
-            >
-              ₼0
-            </div>
-            <div class="text-xs sm:text-sm opacity-90">Çıxar</div>
-          </div>
+      <div class="grid grid-cols-3 gap-2 mt-4">
+        <div class="chip rounded-xl p-3 text-center">
+          <div id="balText" class="font-extrabold text-lg">₼0.00</div>
+          <div class="text-xs text-slate-300 mt-1">Balans</div>
+        </div>
+        <div class="chip rounded-xl p-3 text-center">
+          <div id="totalRecharge" class="font-extrabold text-lg">₼0.00</div>
+          <div class="text-xs text-slate-300 mt-1">Yukleme</div>
+        </div>
+        <div class="chip rounded-xl p-3 text-center">
+          <div id="totalWithdraw" class="font-extrabold text-lg">₼0.00</div>
+          <div class="text-xs text-slate-300 mt-1">Cixaris</div>
         </div>
       </div>
     </section>
 
-    <section class="px-4 mt-4 bg-white rounded-2xl p-4 shadow">
-      <h3 class="text-lg font-bold mb-2">Komanda söhbəti</h3>
-      <p>Komanda ölçüsü: <b id="teamCount">0</b></p>
-      <div id="teamList" class="mt-2 text-sm text-slate-600 space-y-1"></div>
+    <!-- Team preview -->
+    <section class="glass rounded-3xl p-4 mt-4">
+      <div class="flex items-center justify-between">
+        <h3 class="text-xl font-black">Komanda heyeti</h3>
+        <a href="team.html" class="text-emerald-300 font-bold">Daxil ol →</a>
+      </div>
+      <div class="mt-2 text-sm text-slate-300">
+        Komandana qosulanlarin siyahisi ucun bu bolmeye daxil ol.
+      </div>
+      <div class="mt-3 chip rounded-xl p-3 flex items-center justify-between">
+        <span>Komanda olcusu</span>
+        <b id="teamCount">0</b>
+      </div>
     </section>
 
-    <section class="px-4 mt-4 space-y-3">
-      <a href="bank-card.html" class="block bg-yellow-400 rounded-2xl px-4 py-4 text-white font-bold text-2xl shadow">💳 Bank kartı <span class="float-right">&gt;</span></a>
-      <a href="recharge-history.html" class="block bg-yellow-400 rounded-2xl px-4 py-4 text-white font-bold text-2xl shadow">🧾 Yükləmə qeydi <span class="float-right">&gt;</span></a>
-      <a href="balance-details.html" class="block bg-yellow-400 rounded-2xl px-4 py-4 text-white font-bold text-2xl shadow">📈 Balans detalları <span class="float-right">&gt;</span></a>
-      <a href="withdraw-history.html" class="block bg-yellow-400 rounded-2xl px-4 py-4 text-white font-bold text-2xl shadow">⬆️ Çıxarış qeydləri <span class="float-right">&gt;</span></a>
-      <a href="service.html" class="block bg-yellow-400 rounded-2xl px-4 py-4 text-white font-bold text-2xl shadow">🎯 Xidmət mərkəzi <span class="float-right">&gt;</span></a>
-      <button id="logoutBtn" class="w-full bg-red-500 rounded-2xl px-4 py-4 text-left text-white font-bold text-2xl shadow">⎋ Çıxış <span class="float-right">&gt;</span></button>
+    <!-- Menu -->
+    <section class="mt-4 space-y-3">
+      <a href="bank-card.html" class="menu-link bg-gradient-to-r from-amber-400 to-yellow-500">
+        <span>💳 Bank karti</span><span>></span>
+      </a>
+      <a href="recharge-history.html" class="menu-link bg-gradient-to-r from-amber-400 to-yellow-500">
+        <span>🧾 Yukleme qeydi</span><span>></span>
+      </a>
+      <a href="balance-details.html" class="menu-link bg-gradient-to-r from-amber-400 to-yellow-500">
+        <span>📈 Balans detallari</span><span>></span>
+      </a>
+      <a href="withdraw-history.html" class="menu-link bg-gradient-to-r from-amber-400 to-yellow-500">
+        <span>⬆️ Cixaris qeydleri</span><span>></span>
+      </a>
+      <a href="service.html" class="menu-link bg-gradient-to-r from-fuchsia-500 to-violet-700">
+        <span>🎯 Xidmet merkezi</span><span>></span>
+      </a>
+      <button id="logoutBtn" class="menu-link w-full text-left bg-gradient-to-r from-red-500 to-rose-700">
+        <span>⎋ Cixis</span><span>></span>
+      </button>
     </section>
   </main>
 
-  <nav class="bottom-nav fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 flex justify-around py-3 z-50">
-    <a href="home.html">🏠<div class="text-xs">Ana səhifə</div></a>
-    <a href="products.html">🛍️<div class="text-xs">Məhsullarım</div></a>
-    <a href="treasury.html">🏛️<div class="text-xs">Xəzinə</div></a>
-    <a href="share.html">📣<div class="text-xs">Paylaş</div></a>
-    <a href="my.html" class="active">👤<div class="text-xs">Mənim</div></a>
+  <nav class="bottom-nav fixed bottom-0 left-0 right-0 flex justify-around py-3 z-50">
+    <a href="home.html">🏠<div class="text-xs">Ana sehife</div></a>
+    <a href="products.html">🛍️<div class="text-xs">Mehsullarim</div></a>
+    <a href="treasury.html">🏛️<div class="text-xs">Xezine</div></a>
+    <a href="share.html">📣<div class="text-xs">Paylas</div></a>
+    <a href="my.html" class="active">👤<div class="text-xs">Menim</div></a>
   </nav>
 
   <script>
@@ -95,10 +154,13 @@
 
     async function initMyPage() {
       const s = getSession();
-      if (!s?.token) return location.href = "index.html";
+      if (!s?.token) {
+        location.href = "index.html";
+        return;
+      }
 
       const me = await fetchMe();
-      document.getElementById("phoneText").textContent = me.phone || "+994 000110000";
+      document.getElementById("phoneText").textContent = me.phone || "+994000000000";
       document.getElementById("balText").textContent = money(me.balance || 0);
 
       const rechargeSum = readArr("pm_recharge_history").reduce((a, b) => a + Number(b.amount || 0), 0);
@@ -109,13 +171,6 @@
       const refs = await fetchMyReferrals();
       const teamCount = Array.isArray(refs) ? refs.length : 0;
       document.getElementById("teamCount").textContent = teamCount;
-
-      const list = document.getElementById("teamList");
-      if (!teamCount) {
-        list.innerHTML = "<div>Komanda yoxdur</div>";
-      } else {
-        list.innerHTML = refs.map(r => `<div>• ${(r.name || "-")} (${(r.phone || "-")})</div>`).join("");
-      }
     }
 
     document.getElementById("logoutBtn").addEventListener("click", () => {
@@ -123,7 +178,9 @@
       location.href = "index.html";
     });
 
-    initMyPage().catch(() => location.href = "index.html");
+    initMyPage().catch(() => {
+      location.href = "index.html";
+    });
   </script>
 </body>
 </html>
