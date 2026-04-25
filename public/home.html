@@ -3,44 +3,153 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Para.man | Ana səhifə</title>
+  <title>Para.man | Ana sehife</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="auth.js"></script>
   <style>
-    body { padding-bottom: 78px; }
-    .bottom-nav a.active { color: #16a34a; font-weight: 700; }
+    :root {
+      --bg1: #0f172a;
+      --bg2: #111827;
+      --card: rgba(255, 255, 255, 0.12);
+      --stroke: rgba(255, 255, 255, 0.2);
+      --txt: #e2e8f0;
+      --muted: #cbd5e1;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      min-height: 100vh;
+      margin: 0;
+      color: var(--txt);
+      padding-bottom: 90px;
+      background:
+        radial-gradient(1200px 500px at 15% -15%, rgba(16, 185, 129, 0.30), transparent 60%),
+        radial-gradient(900px 500px at 85% -10%, rgba(59, 130, 246, 0.32), transparent 62%),
+        linear-gradient(160deg, var(--bg1), var(--bg2));
+    }
+
+    .hero-glow {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      background:
+        radial-gradient(420px 220px at 20% 25%, rgba(168, 85, 247, 0.22), transparent 70%),
+        radial-gradient(560px 260px at 80% 18%, rgba(34, 211, 238, 0.18), transparent 72%);
+    }
+
+    .wrap { position: relative; z-index: 1; }
+
+    .glass {
+      background: var(--card);
+      border: 1px solid var(--stroke);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      box-shadow: 0 16px 38px rgba(2, 6, 23, 0.35);
+    }
+
+    .chip {
+      border: 1px solid rgba(255, 255, 255, 0.24);
+      background: rgba(255, 255, 255, 0.08);
+      color: #f8fafc;
+    }
+
+    .action-btn {
+      position: relative;
+      overflow: hidden;
+      transition: transform .18s ease, box-shadow .18s ease, opacity .18s ease;
+      box-shadow: 0 10px 18px rgba(15, 23, 42, 0.3);
+    }
+
+    .action-btn:hover { transform: translateY(-2px); }
+    .action-btn:active { transform: translateY(0); }
+
+    .action-btn::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(110deg, transparent 10%, rgba(255, 255, 255, 0.23) 35%, transparent 60%);
+      transform: translateX(-140%);
+      transition: transform .65s ease;
+    }
+
+    .action-btn:hover::after { transform: translateX(140%); }
+
+    .buy-btn {
+      transition: all .2s ease;
+      box-shadow: 0 10px 16px rgba(30, 64, 175, 0.32);
+    }
+
+    .buy-btn:hover { transform: translateY(-2px); }
+
+    .buy-btn:disabled {
+      box-shadow: none;
+      opacity: .8;
+      cursor: not-allowed;
+    }
+
+    .bottom-nav {
+      background: rgba(15, 23, 42, 0.88);
+      border-top: 1px solid rgba(255, 255, 255, 0.12);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+
+    .bottom-nav a {
+      color: #cbd5e1;
+      font-weight: 500;
+      transition: all .2s ease;
+      text-align: center;
+    }
+
+    .bottom-nav a.active {
+      color: #34d399;
+      font-weight: 700;
+      transform: translateY(-1px);
+    }
+
+    .pkg-title { color: #f8fafc; }
+    .pkg-sub { color: var(--muted); }
   </style>
 </head>
-<body class="bg-slate-100 min-h-screen">
-  <main class="max-w-5xl mx-auto p-4">
-    <section class="bg-white rounded-2xl shadow p-4 mb-4">
+<body>
+  <div class="hero-glow"></div>
+
+  <main class="wrap max-w-6xl mx-auto p-4 sm:p-5">
+    <section class="glass rounded-3xl p-4 sm:p-5 mb-4">
       <div class="flex flex-wrap items-center justify-between gap-2">
-        <h1 class="text-xl font-bold">Ana səhifə</h1>
-        <div id="balanceText" class="font-semibold">Balans: ₼0.00</div>
+        <h1 class="text-2xl sm:text-3xl font-black tracking-tight">Ana sehife</h1>
+        <div id="balanceText" class="chip rounded-xl px-3 py-2 font-bold">Balans: ₼0.00</div>
       </div>
 
-      <div class="mt-3 grid grid-cols-2 sm:grid-cols-5 gap-2 text-sm">
-        <a class="px-3 py-2 rounded-lg bg-emerald-600 text-white text-center" href="recharge.html">🟢 Yüklə</a>
-        <a class="px-3 py-2 rounded-lg bg-blue-600 text-white text-center" href="withdraw.html">💳 Çıxar</a>
-        <a class="px-3 py-2 rounded-lg bg-fuchsia-600 text-white text-center" href="service.html">🎯 Xidmət</a>
-        <a class="px-3 py-2 rounded-lg bg-indigo-600 text-white text-center" href="app.html">📱 Tətbiq</a>
-        <a id="adminLink" class="px-3 py-2 rounded-lg bg-slate-700 text-white text-center hidden" href="admin.html">🔐 Admin</a>
+      <p class="text-slate-200/90 mt-2 text-sm sm:text-base">
+        Kreativ gorunum, premium kartlar ve rahat kecid.
+      </p>
+
+      <div class="mt-4 grid grid-cols-2 sm:grid-cols-5 gap-2 text-sm">
+        <a class="action-btn px-3 py-2 rounded-xl text-white text-center bg-gradient-to-r from-emerald-500 to-green-600" href="recharge.html">🟢 Yukle</a>
+        <a class="action-btn px-3 py-2 rounded-xl text-white text-center bg-gradient-to-r from-sky-500 to-blue-700" href="withdraw.html">💳 Cixar</a>
+        <a class="action-btn px-3 py-2 rounded-xl text-white text-center bg-gradient-to-r from-fuchsia-500 to-violet-700" href="service.html">🎯 Xidmet</a>
+        <a class="action-btn px-3 py-2 rounded-xl text-white text-center bg-gradient-to-r from-indigo-500 to-blue-700" href="app.html">📱 Tetbiq</a>
+        <a id="adminLink" class="action-btn px-3 py-2 rounded-xl text-white text-center bg-gradient-to-r from-slate-600 to-slate-800 hidden" href="admin.html">🔐 Admin</a>
       </div>
 
-      <div id="refBox" class="mt-3 bg-slate-800 text-white rounded-xl p-3 hidden">
-        Referans kod: <b id="refCode"></b>
+      <div id="refBox" class="mt-4 rounded-2xl p-3 sm:p-4 hidden" style="background: linear-gradient(110deg, rgba(30,41,59,.82), rgba(15,23,42,.92)); border:1px solid rgba(148,163,184,.35);">
+        <span class="text-slate-300">Referans kod:</span>
+        <b id="refCode" class="text-emerald-300 tracking-wide"></b>
       </div>
     </section>
 
     <section id="cards" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4"></section>
   </main>
 
-  <nav class="bottom-nav fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 flex justify-around py-3 z-50">
-    <a href="home.html" class="active">🏠<div class="text-xs">Ana səhifə</div></a>
-    <a href="products.html">🛍️<div class="text-xs">Məhsullarım</div></a>
-    <a href="treasury.html">🏛️<div class="text-xs">Xəzinə</div></a>
-    <a href="share.html">📣<div class="text-xs">Paylaş</div></a>
-    <a href="my.html">👤<div class="text-xs">Mənim</div></a>
+  <nav class="bottom-nav fixed bottom-0 left-0 right-0 flex justify-around py-3 z-50">
+    <a href="home.html" class="active">🏠<div class="text-xs">Ana sehife</div></a>
+    <a href="products.html">🛍️<div class="text-xs">Mehsullarim</div></a>
+    <a href="treasury.html">🏛️<div class="text-xs">Xezine</div></a>
+    <a href="share.html">📣<div class="text-xs">Paylas</div></a>
+    <a href="my.html">👤<div class="text-xs">Menim</div></a>
   </nav>
 
   <script>
@@ -59,18 +168,21 @@
       try { return JSON.parse(localStorage.getItem("pm_owned_packages") || "[]"); }
       catch { return []; }
     }
+
     function setOwned(arr) {
       localStorage.setItem("pm_owned_packages", JSON.stringify(arr));
     }
 
     async function loadHeader() {
       const s = getSession();
-      if (!s?.token) { location.href = "index.html"; return; }
+      if (!s?.token) {
+        location.href = "index.html";
+        return;
+      }
 
       const me = await fetchMe();
       document.getElementById("balanceText").textContent = `Balans: ${money(me.balance || 0)}`;
 
-      // ref kod boşdursa göstərmə
       const refCode = me.referral_code || me.referralCode || "";
       const refBox = document.getElementById("refBox");
       const refText = document.getElementById("refCode");
@@ -81,7 +193,6 @@
         refBox.classList.add("hidden");
       }
 
-      // admin link yalnız adminə
       const adminLink = document.getElementById("adminLink");
       if (me.role === "admin") adminLink.classList.remove("hidden");
       else adminLink.classList.add("hidden");
@@ -94,14 +205,14 @@
       el.innerHTML = packages.map(p => {
         const isOwned = owned.includes(p.id);
         return `
-          <article class="bg-white rounded-2xl shadow p-4">
-            <h3 class="text-lg font-bold mb-1">${p.name}</h3>
-            <p class="text-sm text-slate-500">Müddət: ${p.days} gün</p>
-            <p class="text-sm">Gündəlik gəlir: <b>${money(p.daily)}</b></p>
-            <p class="text-sm mb-3">Ümumi gəlir: <b>${money(p.total)}</b></p>
-            <button class="buyBtn w-full py-2 rounded-lg ${isOwned ? "bg-slate-300 text-slate-700" : "bg-blue-600 text-white"}"
+          <article class="glass rounded-3xl p-4">
+            <h3 class="pkg-title text-2xl font-black mb-1">${p.name}</h3>
+            <p class="pkg-sub text-sm">Muddet: ${p.days} gun</p>
+            <p class="text-sm mt-1">Gundelik gelir: <b class="text-emerald-300">${money(p.daily)}</b></p>
+            <p class="text-sm mb-3">Umumi gelir: <b class="text-cyan-300">${money(p.total)}</b></p>
+            <button class="buyBtn buy-btn w-full py-2.5 rounded-xl ${isOwned ? "bg-slate-400 text-slate-800" : "bg-gradient-to-r from-blue-500 to-indigo-700 text-white"}"
                     data-id="${p.id}" data-price="${p.price}" ${isOwned ? "disabled" : ""}>
-              ${isOwned ? "Alınıb" : "Al " + money(p.price)}
+              ${isOwned ? "Alinib" : "Al " + money(p.price)}
             </button>
           </article>
         `;
@@ -129,10 +240,10 @@
             }
 
             document.getElementById("balanceText").textContent = `Balans: ${money(newBalance)}`;
-            alert("Paket alındı");
+            alert("Paket alindi");
             renderCards();
           } catch (e) {
-            alert(e.message || "Xəta");
+            alert(e.message || "Xeta");
           }
         });
       });
@@ -163,7 +274,6 @@
       if (res.ok && Number.isFinite(Number(data.balance))) {
         document.getElementById("balanceText").textContent = `Balans: ${money(data.balance)}`;
       }
-      // bu gun artiq goturulubsa sakit keç
     }
 
     (async function init() {
@@ -172,7 +282,7 @@
         renderCards();
         await claimDailyPackageIncome();
       } catch (e) {
-        alert(e.message || "Xəta");
+        alert(e.message || "Xeta");
         location.href = "index.html";
       }
     })();
