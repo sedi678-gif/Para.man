@@ -15,29 +15,47 @@
 <body>
   <main class="max-w-md mx-auto pb-4">
     <section class="relative">
-      <img src="https://images.unsplash.com/photo-1501139083538-0139583c060f?auto=format&fit=crop&w=1200&q=60"
-           class="w-full h-44 object-cover" alt="bg" />
+      <img
+        src="https://images.unsplash.com/photo-1501139083538-0139583c060f?auto=format&fit=crop&w=1200&q=60"
+        class="w-full h-44 object-cover"
+        alt="bg"
+      />
     </section>
 
     <section class="-mt-10 px-4">
       <div class="bg-gradient-to-r from-red-600 to-orange-500 rounded-2xl p-4 shadow-xl text-white">
         <div class="glass rounded-xl px-4 py-3 flex items-center justify-between">
-          <div id="phoneText" class="font-bold text-2xl">+994 000110000</div>
+          <div id="phoneText" class="font-bold text-lg sm:text-xl md:text-2xl">+994 000110000</div>
           <div class="text-xl">🧑‍💼</div>
         </div>
 
         <div class="grid grid-cols-3 gap-2 text-center mt-4">
           <div>
-            <div id="balText" class="text-4xl font-extrabold">₼0</div>
-            <div class="text-sm opacity-90">Mənim balansım</div>
+            <div
+              id="balText"
+              class="font-extrabold leading-tight whitespace-nowrap tabular-nums text-lg sm:text-xl md:text-2xl"
+            >
+              ₼0
+            </div>
+            <div class="text-xs sm:text-sm opacity-90">Mənim balansım</div>
           </div>
           <div>
-            <div id="totalRecharge" class="text-4xl font-extrabold">₼0</div>
-            <div class="text-sm opacity-90">Yüklə</div>
+            <div
+              id="totalRecharge"
+              class="font-extrabold leading-tight whitespace-nowrap tabular-nums text-lg sm:text-xl md:text-2xl"
+            >
+              ₼0
+            </div>
+            <div class="text-xs sm:text-sm opacity-90">Yüklə</div>
           </div>
           <div>
-            <div id="totalWithdraw" class="text-4xl font-extrabold">₼0</div>
-            <div class="text-sm opacity-90">Çıxar</div>
+            <div
+              id="totalWithdraw"
+              class="font-extrabold leading-tight whitespace-nowrap tabular-nums text-lg sm:text-xl md:text-2xl"
+            >
+              ₼0
+            </div>
+            <div class="text-xs sm:text-sm opacity-90">Çıxar</div>
           </div>
         </div>
       </div>
@@ -68,9 +86,9 @@
   </nav>
 
   <script>
-    function money(v){ return "₼" + Number(v || 0).toFixed(2); }
+    function money(v) { return "₼" + Number(v || 0).toFixed(2); }
 
-    function readArr(key){
+    function readArr(key) {
       try { return JSON.parse(localStorage.getItem(key) || "[]"); }
       catch { return []; }
     }
@@ -83,8 +101,8 @@
       document.getElementById("phoneText").textContent = me.phone || "+994 000110000";
       document.getElementById("balText").textContent = money(me.balance || 0);
 
-      const rechargeSum = readArr("pm_recharge_history").reduce((a,b)=>a + Number(b.amount||0), 0);
-      const withdrawSum = readArr("pm_withdraw_history").reduce((a,b)=>a + Number(b.amount||0), 0);
+      const rechargeSum = readArr("pm_recharge_history").reduce((a, b) => a + Number(b.amount || 0), 0);
+      const withdrawSum = readArr("pm_withdraw_history").reduce((a, b) => a + Number(b.amount || 0), 0);
       document.getElementById("totalRecharge").textContent = money(rechargeSum);
       document.getElementById("totalWithdraw").textContent = money(withdrawSum);
 
