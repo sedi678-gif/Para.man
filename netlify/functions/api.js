@@ -210,9 +210,7 @@ exports.handler = async (event) => {
       if (u.last_claim_date === today) return json(400, { error: "Bu gun artiq goturulub" });
 
       const amount = Number(body.amount || 0);
-      if (!Number.isFinite(amount) || amount <= 0) {
-        return json(400, { error: "Mebleg duzgun deyil" });
-      }
+      if (!Number.isFinite(amount) || amount <= 0) return json(400, { error: "Mebleg duzgun deyil" });
 
       const newBal = Number(u.balance || 0) + amount;
       await supabase
@@ -228,33 +226,25 @@ exports.handler = async (event) => {
       const authUser = parseToken(event);
       const amount = Number(body.amount || 0);
       if (amount < 10) return json(400, { error: "Minimum yukleme 10 AZN" });
-
       const { data: u } = await supabase.from("users").select("balance").eq("user_id", authUser.uid).maybeSingle();
       if (!u) return json(404, { error: "Tapilmadi" });
-
       const newBal = Number(u.balance || 0) + amount;
       await supabase.from("users").update({ balance: newBal }).eq("user_id", authUser.uid);
       return json(200, { balance: newBal });
     }
-
     // WITHDRAW (legacy instant)
     if (method === "POST" && path === "/withdraw") {
       const authUser = parseToken(event);
       const amount = Number(body.amount || 0);
       if (amount < 6) return json(400, { error: "Minimum cixaris 6 AZN" });
-
       const { data: u } = await supabase.from("users").select("balance").eq("user_id", authUser.uid).maybeSingle();
       if (!u) return json(404, { error: "Tapilmadi" });
-
       const bal = Number(u.balance || 0);
       if (amount > bal) return json(400, { error: "Balans kifayet deyil" });
-
       const newBal = bal - amount;
       await supabase.from("users").update({ balance: newBal }).eq("user_id", authUser.uid);
       return json(200, { balance: newBal });
-    }
-
-    // USER: recharge request create (admin approval)
+    }    // USER: recharge request create (admin approval)
     if (method === "POST" && path === "/recharge/request") {
       const authUser = parseToken(event);
       const amount = Number(body.amount || 0);
@@ -310,7 +300,6 @@ exports.handler = async (event) => {
       const taxAmount = Number((requestAmount * 0.15).toFixed(2));
       const payoutAmount = Number((requestAmount - taxAmount).toFixed(2));
 
-      // request yaradanda balansdan çıxılır (bloklanır)
       const newBal = Number((bal - requestAmount).toFixed(2));
       await supabase.from("users").update({ balance: newBal }).eq("user_id", authUser.uid);
 
@@ -388,6 +377,20 @@ exports.handler = async (event) => {
       return json(200, { referrals: refs || [] });
     }
 
+    // USER: own recharge requests
+    if (method === "GET" && path === "/my-recharge-requests") {
+      const authUser = parseToken(event);
+
+      const { data, error } = await supabase
+        .from("recharge_requests")
+        .select("*")
+        .eq("user_id", authUser.uid)
+        .order("id", { ascending: false });
+
+      if (error) return json(500, { error: "Yukleme sorqulari alinmadi" });
+      return json(200, { requests: data || [] });
+    }
+
     // USER: own withdraw requests
     if (method === "GET" && path === "/my-withdraw-requests") {
       const authUser = parseToken(event);
@@ -437,9 +440,7 @@ exports.handler = async (event) => {
 
       if (error) return json(500, { error: "Sorqular getirilemedi" });
       return json(200, { requests: data || [] });
-    }
-
-    // ADMIN: approve/reject recharge request (+20% referral bonus)
+    }    // ADMIN: approve/reject recharge request (+20% referral bonus)
     if (method === "PATCH" && path.startsWith("/admin/recharge-requests/")) {
       const authUser = parseToken(event);
       if (authUser.role !== "admin") return json(403, { error: "Yalniz admin" });
