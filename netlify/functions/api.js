@@ -440,7 +440,7 @@ exports.handler = async (event) => {
 
       const { data, error } = await supabase
         .from("recharge_requests")
-        .select("*")
+        .select("id,user_id,amount,paid_amount,channel,status,created_at,reviewed_at,reviewed_by,note")
         .order("id", { ascending: false });
 
       if (error) return json(500, { error: "Sorqular getirilemedi" });

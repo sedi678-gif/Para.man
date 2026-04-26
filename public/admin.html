@@ -281,7 +281,7 @@
         headers: { Authorization: "Bearer " + token }
       });
       const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data.error || "Recharge sorğuları alınmadı");
+      if (!res.ok) throw new Error((data.error || "Recharge sorğuları alınmadı") + ` (HTTP ${res.status})`);
 
       const rows = data.requests || [];
       cacheRecharge = rows;
@@ -302,9 +302,6 @@
             <div><b>Seçilən məbləğ:</b> ${money(r.amount)}</div>
             <div><b>Qəbzdə məbləğ:</b> ${money(r.paid_amount)}</div>
             <div class="sm:col-span-2"><b>Yaranma:</b> ${fmtDate(r.created_at)}</div>
-          </div>
-          <div class="mt-2">
-            <img src="${esc(r.receipt_url)}" alt="receipt" class="max-h-52 rounded border" />
           </div>
           <div class="mt-3 flex gap-2 ${r.status === "pending" ? "" : "hidden"}">
             <button onclick="reviewRecharge(${r.id}, 'approve')" class="bg-green-600 text-white rounded px-3 py-1">Approve</button>
