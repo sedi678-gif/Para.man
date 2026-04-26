@@ -607,6 +607,46 @@ exports.handler = async (event) => {
       return json(200, { ok: true });
     }
 
+    // ADMIN BALANCE ADJUST (+ / -)
+    if (method === "PATCH" && path.startsWith("/admin/users/") && path.endsWith("/balance")) {
+      const authUser = parseToken(event);
+      if (authUser.role !== "admin") return json(403, { error: "Yalniz admin" });
+
+      const uid = decodeURIComponent(path.replace("/admin/users/", "").replace("/balance", ""));
+      const delta = Number(body.delta || 0);
+      const note = String(body.note || "").trim();
+
+      if (!uid) return json(400, { error: "User ID teleb olunur" });
+      if (!Number.isFinite(delta) || delta === 0) return json(400, { error: "Mebleg duzgun deyil" });
+
+      const { data: u } = await supabase
+        .from("users")
+        .select("balance")
+        .eq("user_id", uid)
+        .maybeSingle();
+
+      if (!u) return json(404, { error: "User tapilmadi" });
+
+      const currentBalance = Number(u.balance || 0);
+      const newBalance = Number((currentBalance + delta).toFixed(2));
+      if (newBalance < 0) return json(400, { error: "Balans menfi ola bilmez" });
+
+      const { error: updErr } = await supabase
+        .from("users")
+        .update({ balance: newBalance })
+        .eq("user_id", uid);
+
+      if (updErr) return json(500, { error: "Balans yenilenmedi" });
+
+      return json(200, {
+        ok: true,
+        user_id: uid,
+        balance: newBalance,
+        delta: Number(delta.toFixed(2)),
+        note
+      });
+    }
+
     return json(404, { error: "Route tapilmadi" });
   } catch (e) {
     return json(500, { error: e.message || "Server xetasi" });
