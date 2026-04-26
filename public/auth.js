@@ -1,6 +1,7 @@
 const API = "/.netlify/functions/api";
 const SESSION_KEY = "pm_session_v2";
 const ADMIN_KEY = "pm_admin_token_v2";
+const ADMIN_KEY_LEGACY = "pm_admin_token";
 
 async function api(path, options = {}) {
   const res = await fetch(API + path, {
@@ -99,12 +100,14 @@ async function adminLogin(phone, pin) {
     body: JSON.stringify({ phone, pin })
   });
   localStorage.setItem(ADMIN_KEY, data.token);
+  localStorage.setItem(ADMIN_KEY_LEGACY, data.token);
 }
 function getAdminToken() {
-  return localStorage.getItem(ADMIN_KEY) || "";
+  return localStorage.getItem(ADMIN_KEY) || localStorage.getItem(ADMIN_KEY_LEGACY) || "";
 }
 function clearAdminToken() {
   localStorage.removeItem(ADMIN_KEY);
+  localStorage.removeItem(ADMIN_KEY_LEGACY);
 }
 async function adminGetUsers() {
   return api("/admin/users", {
