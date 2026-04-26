@@ -3,25 +3,25 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Balansdan çıxarış</title>
+  <title>Balansdan cixaris</title>
   <script src="auth.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-slate-100 min-h-screen p-4">
   <main class="max-w-md mx-auto bg-white rounded-2xl p-5 shadow">
-    <h1 class="text-2xl font-bold mb-2">Balansdan çıxarış</h1>
+    <h1 class="text-2xl font-bold mb-2">Balansdan cixaris</h1>
     <p id="balanceText" class="text-slate-700 mb-3">Balans: ₼0.00</p>
 
-    <input id="amount" type="number" min="10" class="w-full border rounded-xl p-3 mb-3" placeholder="Məbləğ (min 20)" />
+    <input id="amount" type="number" min="10" class="w-full border rounded-xl p-3 mb-3" placeholder="Mebleg (min 10)" />
 
     <div class="bg-slate-50 rounded-xl p-3 mb-3 text-sm">
       <p>Vergi (15%): <b id="taxText">₼0.00</b></p>
-      <p>Karta köçəcək (85%): <b id="payoutText">₼0.00</b></p>
-      <p class="text-amber-700 mt-1">Qeyd: Çıxarışlar 24 saat ərzində admin tərəfindən təsdiqlənir.</p>
+      <p>Karta kocecek (85%): <b id="payoutText">₼0.00</b></p>
+      <p class="text-amber-700 mt-1">Qeyd: Cixarislar 24 saat erzinde admin terefinden tesdiqlenir.</p>
     </div>
 
-    <button id="withdrawBtn" class="w-full bg-blue-600 text-white rounded-xl py-3 font-semibold mb-2">Çıxar</button>
-    <a href="withdraw-history.html" class="block text-center text-blue-600 mb-1">Çıxarış qeydləri</a>
+    <button id="withdrawBtn" class="w-full bg-blue-600 text-white rounded-xl py-3 font-semibold mb-2">Cixar</button>
+    <a href="withdraw-history.html" class="block text-center text-blue-600 mb-1">Cixaris qeydleri</a>
     <a href="my.html" class="block text-center text-slate-600">Geri</a>
   </main>
 
@@ -51,7 +51,7 @@
 
       const card = readCard();
       if (!card || !card.cardNumber) {
-        alert("Çıxarış üçün əvvəlcə bank kartı əlavə edin.");
+        alert("Cixaris ucun evvelce bank karti elave edin.");
         location.href = "bank-card.html";
         return;
       }
@@ -69,10 +69,10 @@
         if (!s?.token) throw new Error("Sessiya yoxdur");
 
         const amount = Number(amountInput.value || 0);
-        if (amount < 20) throw new Error("Minimum çıxarış 20 AZN");
+        if (amount < 10) throw new Error("Minimum cixaris 10 AZN");
 
         const card = readCard();
-        if (!card || !card.cardNumber) throw new Error("Bank kartı tələb olunur");
+        if (!card || !card.cardNumber) throw new Error("Bank karti teleb olunur");
 
         const res = await fetch("/.netlify/functions/api/withdraw/request", {
           method: "POST",
@@ -89,19 +89,19 @@
         });
 
         const data = await res.json().catch(() => ({}));
-        if (!res.ok) throw new Error(data.error || "Sorğu göndərilmədi");
+        if (!res.ok) throw new Error(data.error || "Sorqu gonderilmedi");
 
-        alert("Çıxarış sorğusu yaradıldı. Admin 24 saat ərzində təsdiqləyəcək.");
+        alert("Cixaris sorqusu yaradildi. Admin 24 saat erzinde tesdiqleyecek.");
         location.href = "withdraw-history.html";
       } catch (e) {
-        alert(e.message || "Xəta baş verdi");
+        alert(e.message || "Xeta bas verdi");
       }
     });
 
     init().catch((e) => {
-      alert(e.message || "Xəta");
+      alert(e.message || "Xeta");
       location.href = "index.html";
     });
   </script>
 </body>
-</html>
+</html> 
