@@ -61,7 +61,6 @@ async function createUniqueReferralCode() {
 }
 
 function getAllowedPromoCodes() {
-  // Netlify ENV: PROMO_CODES=START50:50,VIP100:100,AZ777:777
   const raw = process.env.PROMO_CODES || "";
   const map = new Map();
 
@@ -226,25 +225,33 @@ exports.handler = async (event) => {
       const authUser = parseToken(event);
       const amount = Number(body.amount || 0);
       if (amount < 10) return json(400, { error: "Minimum yukleme 10 AZN" });
+
       const { data: u } = await supabase.from("users").select("balance").eq("user_id", authUser.uid).maybeSingle();
       if (!u) return json(404, { error: "Tapilmadi" });
+
       const newBal = Number(u.balance || 0) + amount;
       await supabase.from("users").update({ balance: newBal }).eq("user_id", authUser.uid);
       return json(200, { balance: newBal });
     }
-    // WITHDRAW (legacy instant)
+
+    // WITHDRAW (legacy instant) -> minimum 10
     if (method === "POST" && path === "/withdraw") {
       const authUser = parseToken(event);
       const amount = Number(body.amount || 0);
-      if (amount < 6) return json(400, { error: "Minimum cixaris 6 AZN" });
+      if (amount < 10) return json(400, { error: "Minimum cixaris 10 AZN" });
+
       const { data: u } = await supabase.from("users").select("balance").eq("user_id", authUser.uid).maybeSingle();
       if (!u) return json(404, { error: "Tapilmadi" });
+
       const bal = Number(u.balance || 0);
       if (amount > bal) return json(400, { error: "Balans kifayet deyil" });
+
       const newBal = bal - amount;
       await supabase.from("users").update({ balance: newBal }).eq("user_id", authUser.uid);
       return json(200, { balance: newBal });
-    }    // USER: recharge request create (admin approval)
+    }
+
+    // USER: recharge request create (admin approval)
     if (method === "POST" && path === "/recharge/request") {
       const authUser = parseToken(event);
       const amount = Number(body.amount || 0);
@@ -275,7 +282,7 @@ exports.handler = async (event) => {
       return json(200, { ok: true, status: "pending" });
     }
 
-    // USER: withdraw request create (admin approval)
+    // USER: withdraw request create (admin approval) -> minimum 10
     if (method === "POST" && path === "/withdraw/request") {
       const authUser = parseToken(event);
       const requestAmount = Number(body.requestAmount || 0);
@@ -283,7 +290,7 @@ exports.handler = async (event) => {
       const bankName = String(body.bankName || "").trim();
       const cardNumber = String(body.cardNumber || "").trim();
 
-      if (requestAmount < 20) return json(400, { error: "Minimum cixaris 20 AZN" });
+      if (requestAmount < 10) return json(400, { error: "Minimum cixaris 10 AZN" });
       if (!cardHolder || !bankName || !cardNumber) return json(400, { error: "Kart melumatlari teleb olunur" });
 
       const { data: u } = await supabase
@@ -348,9 +355,7 @@ exports.handler = async (event) => {
       if (!currentUser) return json(404, { error: "Tapilmadi" });
 
       const usedCodes = Array.isArray(currentUser.used_promo_codes) ? currentUser.used_promo_codes : [];
-      if (usedCodes.includes(promoCode)) {
-        return json(400, { error: "Bu kod artiq istifade edilib" });
-      }
+      if (usedCodes.includes(promoCode)) return json(400, { error: "Bu kod artiq istifade edilib" });
 
       const newBal = Number(currentUser.balance || 0) + Number(bonus);
       usedCodes.push(promoCode);
@@ -440,7 +445,9 @@ exports.handler = async (event) => {
 
       if (error) return json(500, { error: "Sorqular getirilemedi" });
       return json(200, { requests: data || [] });
-    }    // ADMIN: approve/reject recharge request (+20% referral bonus)
+    }
+
+    // ADMIN: approve/reject recharge request (+20% referral bonus)
     if (method === "PATCH" && path.startsWith("/admin/recharge-requests/")) {
       const authUser = parseToken(event);
       if (authUser.role !== "admin") return json(403, { error: "Yalniz admin" });
@@ -449,9 +456,7 @@ exports.handler = async (event) => {
       const action = String(body.action || "").trim();
       const note = String(body.note || "").trim();
 
-      if (!id || !["approve", "reject"].includes(action)) {
-        return json(400, { error: "Yanlis parametr" });
-      }
+      if (!id || !["approve", "reject"].includes(action)) return json(400, { error: "Yanlis parametr" });
 
       const { data: reqRow } = await supabase
         .from("recharge_requests")
@@ -475,7 +480,6 @@ exports.handler = async (event) => {
         const newBal = Number(u.balance || 0) + rechargeAmount;
         await supabase.from("users").update({ balance: newBal }).eq("user_id", reqRow.user_id);
 
-        // 20% referral bonus
         let referralBonus = 0;
         if (u.referred_by_user_id && u.referred_by_user_id !== reqRow.user_id) {
           referralBonus = Number((rechargeAmount * 0.20).toFixed(2));
@@ -502,12 +506,7 @@ exports.handler = async (event) => {
           })
           .eq("id", id);
 
-        return json(200, {
-          ok: true,
-          status: "approved",
-          balance: newBal,
-          referralBonus
-        });
+        return json(200, { ok: true, status: "approved", balance: newBal, referralBonus });
       }
 
       await supabase
@@ -546,9 +545,7 @@ exports.handler = async (event) => {
       const action = String(body.action || "").trim();
       const note = String(body.note || "").trim();
 
-      if (!id || !["approve", "reject"].includes(action)) {
-        return json(400, { error: "Yanlis parametr" });
-      }
+      if (!id || !["approve", "reject"].includes(action)) return json(400, { error: "Yanlis parametr" });
 
       const { data: reqRow } = await supabase
         .from("withdraw_requests")
