@@ -382,6 +382,50 @@ exports.handler = async (event) => {
       return json(200, { referrals: refs || [] });
     }
 
+    // MESSAGES: user/admin send message
+    if (method === "POST" && path === "/messages/send") {
+      const authUser = parseToken(event);
+      const text = String(body.text || "").trim();
+      let toUserId = String(body.toUserId || "").trim();
+
+      if (!text) return json(400, { error: "Mesaj bos ola bilmez" });
+      if (text.length > 1000) return json(400, { error: "Mesaj cox uzundur" });
+
+      if (authUser.role === "admin") {
+        if (!toUserId || toUserId === "ADMIN") return json(400, { error: "User secilmeyib" });
+      } else {
+        // Normal user only talks with admin
+        toUserId = "ADMIN";
+      }
+
+      const fromUserId = authUser.role === "admin" ? "ADMIN" : authUser.uid;
+      const { error: insErr } = await supabase.from("messages").insert({
+        from_user_id: fromUserId,
+        to_user_id: toUserId,
+        text
+      });
+
+      if (insErr) return json(500, { error: "Mesaj gonderilmedi" });
+      return json(200, { ok: true });
+    }
+
+    // MESSAGES: user gets own thread with admin
+    if (method === "GET" && path === "/messages/my-thread") {
+      const authUser = parseToken(event);
+      if (authUser.role === "admin") return json(403, { error: "Yalniz istifadeci" });
+
+      const uid = authUser.uid;
+      const { data, error } = await supabase
+        .from("messages")
+        .select("id,from_user_id,to_user_id,text,created_at")
+        .or(`and(from_user_id.eq.${uid},to_user_id.eq.ADMIN),and(from_user_id.eq.ADMIN,to_user_id.eq.${uid})`)
+        .order("id", { ascending: true })
+        .limit(500);
+
+      if (error) return json(500, { error: "Mesajlar alinmadi" });
+      return json(200, { messages: data || [] });
+    }
+
     // USER: own recharge requests
     if (method === "GET" && path === "/my-recharge-requests") {
       const authUser = parseToken(event);
@@ -431,6 +475,55 @@ exports.handler = async (event) => {
         .order("id", { ascending: false });
 
       return json(200, { users: users || [] });
+    }
+
+    // ADMIN: message user list (users who talked with admin)
+    if (method === "GET" && path === "/admin/messages/users") {
+      const authUser = parseToken(event);
+      if (authUser.role !== "admin") return json(403, { error: "Yalniz admin" });
+
+      const { data, error } = await supabase
+        .from("messages")
+        .select("id,from_user_id,to_user_id,text,created_at")
+        .or("from_user_id.eq.ADMIN,to_user_id.eq.ADMIN")
+        .order("id", { ascending: false })
+        .limit(1000);
+
+      if (error) return json(500, { error: "Mesaj user list alinmadi" });
+
+      const map = new Map();
+      for (const m of data || []) {
+        const other = m.from_user_id === "ADMIN" ? m.to_user_id : m.from_user_id;
+        if (!other || other === "ADMIN") continue;
+        if (!map.has(other)) {
+          map.set(other, {
+            user_id: other,
+            last_message: m.text,
+            last_at: m.created_at
+          });
+        }
+      }
+
+      return json(200, { users: Array.from(map.values()) });
+    }
+
+    // ADMIN: full message thread with one user
+    if (method === "GET" && path.startsWith("/admin/messages/thread/")) {
+      const authUser = parseToken(event);
+      if (authUser.role !== "admin") return json(403, { error: "Yalniz admin" });
+
+      const uid = decodeURIComponent(path.replace("/admin/messages/thread/", ""));
+      if (!uid || uid === "ADMIN") return json(400, { error: "User secilmeyib" });
+
+      const { data, error } = await supabase
+        .from("messages")
+        .select("id,from_user_id,to_user_id,text,created_at")
+        .or(`and(from_user_id.eq.${uid},to_user_id.eq.ADMIN),and(from_user_id.eq.ADMIN,to_user_id.eq.${uid})`)
+        .order("id", { ascending: true })
+        .limit(1000);
+
+      if (error) return json(500, { error: "Mesajlar alinmadi" });
+      return json(200, { messages: data || [] });
     }
 
     // ADMIN: single user profile details

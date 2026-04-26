@@ -3,18 +3,29 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Para.man | Xidmət</title>
+  <title>Para.man | Xidmet chat</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <style>body{padding-bottom:78px}.bottom-nav a.active{color:#22d3ee;font-weight:700}</style>
+  <script src="auth.js"></script>
+  <style>
+    body { padding-bottom: 78px; }
+    .bottom-nav a.active { color: #22d3ee; font-weight: 700; }
+  </style>
 </head>
 <body class="bg-slate-100 min-h-screen">
   <main class="max-w-xl mx-auto p-4">
-    <div class="bg-white rounded-2xl shadow p-5">
-      <h1 class="text-2xl font-bold mb-3">Bizimlə əlaqə</h1>
-      <p class="mb-2">WhatsApp: <b>+994 XX XXX XX XX</b></p>
-      <p class="mb-2">Email: <b>support@paraman.az</b></p>
-      <p class="text-slate-600">Əlaqə saatları: 10:00 - 19:00</p>
-    </div>
+    <section class="bg-white rounded-2xl shadow p-4 mb-3">
+      <h1 class="text-2xl font-bold">Destek chat</h1>
+      <p class="text-slate-600">Buradan yalniz adminle yaza bilersiniz.</p>
+    </section>
+
+    <section id="chatBox" class="bg-white rounded-2xl shadow p-4 h-[58vh] overflow-y-auto space-y-2"></section>
+
+    <section class="mt-3 bg-white rounded-2xl shadow p-3">
+      <div class="flex gap-2">
+        <input id="msgInput" type="text" class="flex-1 border rounded-xl px-3 py-2" placeholder="Mesaj yaz..." maxlength="1000" />
+        <button id="sendBtn" class="bg-blue-600 text-white rounded-xl px-4 py-2 font-semibold">Gonder</button>
+      </div>
+    </section>
   </main>
 
   <nav class="bottom-nav fixed bottom-0 left-0 right-0 bg-[#0f172a] text-white border-t border-slate-700 flex justify-around py-3 z-50">
@@ -24,5 +35,91 @@
     <a href="share.html">📣 Paylaş</a>
     <a href="my.html" class="active">👤 Mənim</a>
   </nav>
+
+  <script>
+    let currentMessages = [];
+
+    function esc(v) {
+      return String(v ?? "").replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
+    }
+
+    function fmtDate(iso) {
+      const d = new Date(iso);
+      if (Number.isNaN(d.getTime())) return "";
+      const hh = String(d.getHours()).padStart(2, "0");
+      const mi = String(d.getMinutes()).padStart(2, "0");
+      return `${hh}:${mi}`;
+    }
+
+    function renderChat() {
+      const s = getSession();
+      const uid = s?.user?.user_id || "";
+      const box = document.getElementById("chatBox");
+      if (!currentMessages.length) {
+        box.innerHTML = `<div class="text-slate-500 text-sm">Hele mesaj yoxdur.</div>`;
+        return;
+      }
+
+      box.innerHTML = currentMessages.map(m => {
+        const mine = m.from_user_id === uid;
+        return `
+          <div class="flex ${mine ? "justify-end" : "justify-start"}">
+            <div class="${mine ? "bg-blue-600 text-white" : "bg-slate-200 text-slate-800"} rounded-2xl px-3 py-2 max-w-[80%]">
+              <div class="text-sm break-words">${esc(m.text)}</div>
+              <div class="text-[11px] ${mine ? "text-blue-100" : "text-slate-500"} mt-1">${fmtDate(m.created_at)}</div>
+            </div>
+          </div>
+        `;
+      }).join("");
+      box.scrollTop = box.scrollHeight;
+    }
+
+    async function loadMyThread() {
+      const s = getSession();
+      if (!s?.token) {
+        location.href = "index.html";
+        return;
+      }
+
+      const res = await fetch("/.netlify/functions/api/messages/my-thread", {
+        headers: { Authorization: "Bearer " + s.token }
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || "Mesajlar alinmadi");
+      currentMessages = data.messages || [];
+      renderChat();
+    }
+
+    async function sendMessage() {
+      const s = getSession();
+      if (!s?.token) return;
+      const input = document.getElementById("msgInput");
+      const text = String(input.value || "").trim();
+      if (!text) return;
+
+      const res = await fetch("/.netlify/functions/api/messages/send", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: "Bearer " + s.token
+        },
+        body: JSON.stringify({ text })
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || "Mesaj gonderilmedi");
+      input.value = "";
+      await loadMyThread();
+    }
+
+    document.getElementById("sendBtn").addEventListener("click", () => {
+      sendMessage().catch((e) => alert(e.message || "Xeta"));
+    });
+    document.getElementById("msgInput").addEventListener("keydown", (e) => {
+      if (e.key === "Enter") sendMessage().catch((err) => alert(err.message || "Xeta"));
+    });
+
+    loadMyThread().catch((e) => alert(e.message || "Xeta"));
+    setInterval(() => loadMyThread().catch(() => {}), 8000);
+  </script>
 </body>
 </html>

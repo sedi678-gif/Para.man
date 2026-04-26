@@ -60,6 +60,7 @@
         <button class="tab-btn active px-3 py-2 rounded-lg border" data-tab="usersTab">İstifadəçilər</button>
         <button class="tab-btn px-3 py-2 rounded-lg border" data-tab="rechargeTab">Yükləmə sorğuları</button>
         <button class="tab-btn px-3 py-2 rounded-lg border" data-tab="withdrawTab">Çıxarış sorğuları</button>
+        <button class="tab-btn px-3 py-2 rounded-lg border" data-tab="messagesTab">Mesajlar</button>
       </div>
 
       <!-- USERS TAB -->
@@ -88,6 +89,24 @@
         </div>
         <div id="withdrawRequests" class="space-y-3"></div>
       </div>
+
+      <!-- MESSAGES TAB -->
+      <div id="messagesTab" class="tab-panel hidden">
+        <div class="grid md:grid-cols-[300px,1fr] gap-3">
+          <div class="border rounded-xl p-3 bg-slate-50">
+            <div class="font-bold mb-2">Istifadeciler</div>
+            <div id="msgUsers" class="space-y-2 text-sm"></div>
+          </div>
+          <div class="border rounded-xl p-3 bg-slate-50">
+            <div class="font-bold mb-2">Chat: <span id="msgActiveUser">-</span></div>
+            <div id="msgThread" class="bg-white border rounded-xl p-2 h-[360px] overflow-y-auto space-y-2"></div>
+            <div class="mt-2 flex gap-2">
+              <input id="msgAdminInput" class="border rounded px-3 py-2 flex-1" placeholder="Mesaj yaz..." maxlength="1000" />
+              <button id="msgSendBtn" class="bg-indigo-600 text-white rounded px-4">Gonder</button>
+            </div>
+          </div>
+        </div>
+      </div>
     </section>
   </main>
 
@@ -105,6 +124,9 @@
     let cacheUsers = [];
     let cacheRecharge = [];
     let cacheWithdraw = [];
+    let msgUsers = [];
+    let msgThread = [];
+    let activeMsgUserId = "";
 
     function esc(v) {
       return String(v ?? "")
@@ -126,6 +148,14 @@
       const hh = String(d.getHours()).padStart(2, "0");
       const mi = String(d.getMinutes()).padStart(2, "0");
       return `${yyyy}-${mm}-${dd} ${hh}:${mi}`;
+    }
+
+    function fmtTime(iso) {
+      const d = new Date(iso);
+      if (Number.isNaN(d.getTime())) return "";
+      const hh = String(d.getHours()).padStart(2, "0");
+      const mi = String(d.getMinutes()).padStart(2, "0");
+      return `${hh}:${mi}`;
     }
 
     function setStats() {
@@ -500,10 +530,107 @@
       }
     }
 
+    function renderMsgUsers() {
+      const box = document.getElementById("msgUsers");
+      if (!msgUsers.length) {
+        box.innerHTML = `<div class="text-slate-500">Mesaj yoxdur</div>`;
+        return;
+      }
+
+      box.innerHTML = msgUsers.map(u => `
+        <button onclick="openMsgThread('${esc(u.user_id)}')" class="w-full text-left border rounded-lg p-2 ${activeMsgUserId === u.user_id ? "bg-indigo-50 border-indigo-400" : "bg-white"}">
+          <div class="font-semibold">${esc(u.user_id)}</div>
+          <div class="text-xs text-slate-500 truncate">${esc(u.last_message || "")}</div>
+          <div class="text-[11px] text-slate-400">${fmtDate(u.last_at)}</div>
+        </button>
+      `).join("");
+    }
+
+    function renderMsgThread() {
+      const box = document.getElementById("msgThread");
+      if (!msgThread.length) {
+        box.innerHTML = `<div class="text-slate-500 text-sm">Mesaj yoxdur</div>`;
+        return;
+      }
+      box.innerHTML = msgThread.map(m => {
+        const fromAdmin = m.from_user_id === "ADMIN";
+        return `
+          <div class="flex ${fromAdmin ? "justify-end" : "justify-start"}">
+            <div class="${fromAdmin ? "bg-indigo-600 text-white" : "bg-slate-200 text-slate-800"} rounded-2xl px-3 py-2 max-w-[82%]">
+              <div class="text-sm break-words">${esc(m.text)}</div>
+              <div class="text-[11px] ${fromAdmin ? "text-indigo-100" : "text-slate-500"} mt-1">${fmtTime(m.created_at)}</div>
+            </div>
+          </div>
+        `;
+      }).join("");
+      box.scrollTop = box.scrollHeight;
+    }
+
+    async function loadMsgUsers() {
+      const token = getAdminToken();
+      if (!token) return;
+
+      const res = await fetch("/.netlify/functions/api/admin/messages/users", {
+        headers: { Authorization: "Bearer " + token }
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || "Mesaj user list alinmadi");
+      msgUsers = data.users || [];
+      renderMsgUsers();
+    }
+
+    async function openMsgThread(uid) {
+      try {
+        activeMsgUserId = uid;
+        document.getElementById("msgActiveUser").textContent = uid;
+        renderMsgUsers();
+        const token = getAdminToken();
+        const res = await fetch(`/.netlify/functions/api/admin/messages/thread/${encodeURIComponent(uid)}`, {
+          headers: { Authorization: "Bearer " + token }
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.error || "Mesaj thread alinmadi");
+        msgThread = data.messages || [];
+        renderMsgThread();
+      } catch (e) {
+        alert(e.message || "Xeta");
+      }
+    }
+
+    async function sendAdminMessage() {
+      try {
+        const token = getAdminToken();
+        if (!token) throw new Error("Admin token yoxdur");
+        if (!activeMsgUserId) throw new Error("Istifadeci secin");
+
+        const input = document.getElementById("msgAdminInput");
+        const text = String(input.value || "").trim();
+        if (!text) return;
+
+        const res = await fetch("/.netlify/functions/api/messages/send", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: "Bearer " + token
+          },
+          body: JSON.stringify({ toUserId: activeMsgUserId, text })
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.error || "Mesaj gonderilmedi");
+
+        input.value = "";
+        await openMsgThread(activeMsgUserId);
+        await loadMsgUsers();
+      } catch (e) {
+        alert(e.message || "Xeta");
+      }
+    }
+
     async function refreshAll() {
       await loadUsers();
       await loadRechargeRequests();
       await loadWithdrawRequests();
+      await loadMsgUsers();
       setStats();
     }
 
@@ -526,6 +653,10 @@
     document.getElementById("closeProfileModalBtn").addEventListener("click", closeUserProfileModal);
     document.getElementById("profileModal").addEventListener("click", (e) => {
       if (e.target.id === "profileModal") closeUserProfileModal();
+    });
+    document.getElementById("msgSendBtn").addEventListener("click", sendAdminMessage);
+    document.getElementById("msgAdminInput").addEventListener("keydown", (e) => {
+      if (e.key === "Enter") sendAdminMessage();
     });
 
     setupTabs();
