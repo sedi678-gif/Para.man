@@ -433,6 +433,43 @@ exports.handler = async (event) => {
       return json(200, { users: users || [] });
     }
 
+    // ADMIN: single user profile details
+    if (method === "GET" && path.startsWith("/admin/users/") && path.endsWith("/profile")) {
+      const authUser = parseToken(event);
+      if (authUser.role !== "admin") return json(403, { error: "Yalniz admin" });
+
+      const uid = decodeURIComponent(path.replace("/admin/users/", "").replace("/profile", ""));
+      if (!uid) return json(400, { error: "User ID teleb olunur" });
+
+      const { data: user } = await supabase
+        .from("users")
+        .select("user_id,name,phone,balance,is_banned,referral_code,referred_by_code,referred_by_user_id,register_ip,register_device,created_at,used_promo_codes")
+        .eq("user_id", uid)
+        .maybeSingle();
+
+      if (!user) return json(404, { error: "User tapilmadi" });
+
+      const { data: rechargeRequests } = await supabase
+        .from("recharge_requests")
+        .select("id,amount,paid_amount,channel,status,created_at,reviewed_at")
+        .eq("user_id", uid)
+        .order("id", { ascending: false })
+        .limit(20);
+
+      const { data: withdrawRequests } = await supabase
+        .from("withdraw_requests")
+        .select("id,request_amount,tax_amount,payout_amount,status,bank_name,card_number,card_holder,created_at,reviewed_at")
+        .eq("user_id", uid)
+        .order("id", { ascending: false })
+        .limit(20);
+
+      return json(200, {
+        user,
+        rechargeRequests: rechargeRequests || [],
+        withdrawRequests: withdrawRequests || []
+      });
+    }
+
     // ADMIN: list recharge requests
     if (method === "GET" && path === "/admin/recharge-requests") {
       const authUser = parseToken(event);

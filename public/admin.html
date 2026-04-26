@@ -91,6 +91,16 @@
     </section>
   </main>
 
+  <section id="profileModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center p-4 z-50">
+    <div class="bg-white w-full max-w-3xl rounded-2xl shadow-2xl max-h-[85vh] overflow-auto">
+      <div class="sticky top-0 bg-white border-b p-4 flex items-center justify-between">
+        <h3 class="text-xl font-bold">Istifadeci profili</h3>
+        <button id="closeProfileModalBtn" class="px-3 py-1 rounded bg-slate-200">Bagla</button>
+      </div>
+      <div id="profileContent" class="p-4 text-sm text-slate-700">Yuklenir...</div>
+    </div>
+  </section>
+
   <script>
     let cacheUsers = [];
     let cacheRecharge = [];
@@ -195,6 +205,10 @@
                     class="px-3 py-1 rounded text-white ${u.is_banned ? "bg-green-600" : "bg-red-600"}">
               ${u.is_banned ? "Unban" : "Ban"}
             </button>
+            <button onclick="openUserProfile('${esc(u.user_id)}')"
+                    class="px-3 py-1 rounded text-white bg-indigo-600 ml-2">
+              Profile bax
+            </button>
           </div>
           <div class="mt-3 border-t pt-3">
             <div class="font-semibold mb-2">Balans idareetmesi</div>
@@ -271,6 +285,96 @@
       } catch (e) {
         alert(e.message || "Xeta");
       }
+    }
+
+    function renderMiniTable(title, rows, rowRenderer, emptyText) {
+      if (!rows.length) {
+        return `
+          <div class="border rounded-xl p-3 bg-slate-50">
+            <div class="font-bold mb-2">${title}</div>
+            <div class="text-slate-500">${emptyText}</div>
+          </div>
+        `;
+      }
+
+      return `
+        <div class="border rounded-xl p-3 bg-slate-50">
+          <div class="font-bold mb-2">${title}</div>
+          <div class="space-y-2">
+            ${rows.map(rowRenderer).join("")}
+          </div>
+        </div>
+      `;
+    }
+
+    async function openUserProfile(uid) {
+      try {
+        const token = getAdminToken();
+        if (!token) throw new Error("Admin token yoxdur");
+
+        const modal = document.getElementById("profileModal");
+        const content = document.getElementById("profileContent");
+        content.innerHTML = "Yuklenir...";
+        modal.classList.remove("hidden");
+        modal.classList.add("flex");
+
+        const res = await fetch(`/.netlify/functions/api/admin/users/${encodeURIComponent(uid)}/profile`, {
+          headers: { Authorization: "Bearer " + token }
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.error || "Profil alina bilmedi");
+
+        const u = data.user || {};
+        const rr = Array.isArray(data.rechargeRequests) ? data.rechargeRequests : [];
+        const wr = Array.isArray(data.withdrawRequests) ? data.withdrawRequests : [];
+
+        content.innerHTML = `
+          <div class="grid sm:grid-cols-2 gap-2 mb-4">
+            <div><b>User ID:</b> ${esc(u.user_id || "-")}</div>
+            <div><b>Status:</b> ${u.is_banned ? "BANNED" : "ACTIVE"}</div>
+            <div><b>Ad:</b> ${esc(u.name || "-")}</div>
+            <div><b>Telefon:</b> ${esc(u.phone || "-")}</div>
+            <div><b>Balans:</b> ${money(u.balance || 0)}</div>
+            <div><b>Referral:</b> ${esc(u.referral_code || "-")}</div>
+            <div><b>Davet eden:</b> ${esc(u.referred_by_user_id || "-")}</div>
+            <div><b>Qeydiyyat:</b> ${fmtDate(u.created_at)}</div>
+            <div class="sm:col-span-2"><b>IP:</b> ${esc(u.register_ip || "-")}</div>
+          </div>
+
+          ${renderMiniTable(
+            "Son yukleme sorqulari",
+            rr,
+            (r) => `
+              <div class="border rounded p-2 bg-white">
+                <div><b>#${r.id}</b> | ${money(r.amount)} | status: ${esc(r.status)}</div>
+                <div class="text-slate-500">Kanal: ${esc(r.channel || "-")} | ${fmtDate(r.created_at)}</div>
+              </div>
+            `,
+            "Yukleme sorqusu yoxdur"
+          )}
+
+          ${renderMiniTable(
+            "Son cixaris sorqulari",
+            wr,
+            (r) => `
+              <div class="border rounded p-2 bg-white">
+                <div><b>#${r.id}</b> | ${money(r.request_amount)} | status: ${esc(r.status)}</div>
+                <div class="text-slate-500">Bank: ${esc(r.bank_name || "-")} | ${fmtDate(r.created_at)}</div>
+              </div>
+            `,
+            "Cixaris sorqusu yoxdur"
+          )}
+        `;
+      } catch (e) {
+        const content = document.getElementById("profileContent");
+        content.innerHTML = `<div class="text-red-600">${esc(e.message || "Xeta")}</div>`;
+      }
+    }
+
+    function closeUserProfileModal() {
+      const modal = document.getElementById("profileModal");
+      modal.classList.add("hidden");
+      modal.classList.remove("flex");
     }
 
     async function loadRechargeRequests() {
@@ -418,6 +522,10 @@
       document.getElementById("rechargeRequests").innerHTML = "";
       document.getElementById("withdrawRequests").innerHTML = "";
       setStats();
+    });
+    document.getElementById("closeProfileModalBtn").addEventListener("click", closeUserProfileModal);
+    document.getElementById("profileModal").addEventListener("click", (e) => {
+      if (e.target.id === "profileModal") closeUserProfileModal();
     });
 
     setupTabs();
