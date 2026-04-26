@@ -7,28 +7,46 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="auth.js"></script>
 </head>
-<body class="bg-[#071533] min-h-screen flex items-center justify-center p-4">
-  <main class="w-full max-w-md bg-[#13233d] rounded-2xl p-6 shadow-2xl">
-    <h1 class="text-white text-4xl font-extrabold mb-8">Daxil ol</h1>
+<body class="min-h-screen p-4 text-slate-100" style="background: radial-gradient(1200px 500px at 20% -20%, rgba(16,185,129,.28), transparent 60%), radial-gradient(900px 420px at 85% -20%, rgba(59,130,246,.3), transparent 58%), linear-gradient(160deg,#0f172a,#111827);">
+  <main class="w-full max-w-md mx-auto">
+    <section class="rounded-3xl overflow-hidden shadow-2xl border border-white/20">
+      <div class="relative">
+        <img
+          src="https://images.unsplash.com/photo-1611175694984-35f1432c7f6b?auto=format&fit=crop&w=1200&q=80"
+          alt="Dollar background"
+          class="h-44 w-full object-cover"
+        />
+        <div class="absolute inset-0 bg-gradient-to-t from-black/70 to-black/10"></div>
+        <div class="absolute bottom-0 left-0 right-0 p-4">
+          <p class="text-2xl font-black leading-tight text-yellow-300">
+            Dostunu gətir, 20% kəşbek qazan
+          </p>
+        </div>
+      </div>
 
-    <label class="block text-slate-200 text-sm mb-2">Telefon</label>
-    <div class="flex mb-4">
-      <span class="px-4 flex items-center bg-white border border-r-0 rounded-l-xl text-slate-800 font-semibold">+994</span>
-      <input id="phone" type="text" class="w-full border rounded-r-xl p-3 text-black outline-none"
-             placeholder="501234567" maxlength="9" inputmode="numeric" />
-    </div>
+      <div class="bg-white/10 backdrop-blur-md p-5">
+        <h1 class="text-3xl font-extrabold mb-6">Daxil ol</h1>
 
-    <label class="block text-slate-200 text-sm mb-2">Şifrə</label>
-    <input id="password" type="password" class="w-full border rounded-xl p-3 mb-4 text-black outline-none"
-           placeholder="Şifrə" />
+        <label class="block text-slate-200 text-sm mb-2">Telefon</label>
+        <div class="flex mb-4">
+          <span class="px-4 flex items-center bg-white border border-r-0 rounded-l-xl text-slate-800 font-semibold">+994</span>
+          <input id="phone" type="text" class="w-full border rounded-r-xl p-3 text-black outline-none"
+                 placeholder="501234567" maxlength="9" inputmode="numeric" />
+        </div>
 
-    <button id="loginBtn" class="w-full bg-yellow-400 hover:bg-yellow-300 text-slate-900 rounded-xl py-3 font-bold text-xl">
-      Daxil ol
-    </button>
+        <label class="block text-slate-200 text-sm mb-2">Şifrə</label>
+        <input id="password" type="password" class="w-full border rounded-xl p-3 mb-4 text-black outline-none"
+               placeholder="Şifrə" />
 
-    <p class="text-slate-200 mt-5 text-sm">
-      Hesabın yoxdur? <a href="register.html" class="text-yellow-300 underline">Qeydiyyat</a>
-    </p>
+        <button id="loginBtn" class="w-full bg-yellow-400 hover:bg-yellow-300 text-slate-900 rounded-xl py-3 font-bold text-xl transition">
+          Daxil ol
+        </button>
+
+        <p class="text-slate-200 mt-5 text-sm">
+          Hesabın yoxdur? <a href="register.html" class="text-yellow-300 underline">Qeydiyyat</a>
+        </p>
+      </div>
+    </section>
   </main>
 
   <script>
