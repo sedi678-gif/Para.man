@@ -55,6 +55,16 @@
   </main>
 
   <script>
+    // Sessiya varsa logini keç
+    (function autoRedirectIfLoggedIn() {
+      try {
+        const s = getSession();
+        if (s?.token) {
+          location.replace("home.html");
+        }
+      } catch (_) {}
+    })();
+
     const phoneInput = document.getElementById("phone");
     phoneInput.addEventListener("input", () => {
       phoneInput.value = phoneInput.value.replace(/\D/g, "").slice(0, 9);
@@ -64,12 +74,12 @@
       try {
         const phone = phoneInput.value.trim();
         const password = document.getElementById("password").value;
-        if (phone.length !== 9) throw new Error("Telefon 9 rəqəm olmalıdır");
-        if (!password) throw new Error("Şifrə boşdur");
+        if (phone.length !== 9) throw new Error("Telefon 9 reqem olmalidir");
+        if (!password) throw new Error("Sifre bosdur");
         await loginUser({ phone, password });
-        location.href = "home.html";
+        location.replace("home.html");
       } catch (e) {
-        alert(e.message);
+        alert(e.message || "Xeta");
       }
     });
   </script>

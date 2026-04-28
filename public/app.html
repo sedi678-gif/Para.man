@@ -14,9 +14,7 @@
   <main class="max-w-xl mx-auto p-4">
     <section class="bg-white/10 border border-white/20 backdrop-blur-md rounded-2xl shadow p-5">
       <h1 class="text-3xl font-extrabold mb-2">Para.man Android Tetbiqi</h1>
-      <p class="text-slate-200 mb-4">
-        Tetbiqi telefonunuza yukleyib birbasa istifade ede bilersiniz.
-      </p>
+      <p class="text-slate-200 mb-4">Tetbiqi telefonunuza yukleyib birbasa istifade ede bilersiniz.</p>
 
       <div class="grid sm:grid-cols-3 gap-2 mb-4 text-sm">
         <div class="bg-white/10 rounded-xl p-3 border border-white/15">
@@ -33,14 +31,12 @@
         </div>
       </div>
 
-      <a
-        href="https://paraman.netlify.app/apk/app-debug.apk"
-        target="_blank"
-        rel="noopener"
+      <button
+        id="apkBtn"
         class="block w-full text-center bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 rounded-xl py-3 font-extrabold text-lg shadow"
       >
         APK Yukle
-      </a>
+      </button>
 
       <div class="mt-4 rounded-xl bg-white/10 border border-white/15 p-3 text-sm text-slate-200">
         <p class="font-bold mb-1">Qurasdirma qaydasi:</p>
@@ -59,5 +55,16 @@
     <a href="share.html">📣 Paylas</a>
     <a href="my.html" class="active">👤 Menim</a>
   </nav>
+
+  <script>
+    const APK_URL = "https://paraman.netlify.app/apk/app-debug.apk";
+    document.getElementById("apkBtn").addEventListener("click", () => {
+      // WebView üçün daha stabil
+      window.location.href = APK_URL;
+      setTimeout(() => {
+        window.open(APK_URL, "_blank");
+      }, 300);
+    });
+  </script>
 </body>
 </html>
