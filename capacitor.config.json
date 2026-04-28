@@ -1,0 +1,10 @@
+{
+  "appId": "com.paraman.app",
+  "appName": "ParaMan",
+  "webDir": "public",
+  "server": {
+    "url": "https://paraman.netlify.app",
+    "cleartext": false,
+    "androidScheme": "https"
+  }
+}

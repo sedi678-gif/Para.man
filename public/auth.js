@@ -1,10 +1,15 @@
-const API = "/.netlify/functions/api";
+const API_BASE = (() => {
+  // APK local file:// olarsa birbaşa canlı API-yə get
+  if (location.protocol === "file:") return "https://paraman.netlify.app/.netlify/functions/api";
+  return "/.netlify/functions/api";
+})();
+
 const SESSION_KEY = "pm_session_v2";
 const ADMIN_KEY = "pm_admin_token_v2";
 const ADMIN_KEY_LEGACY = "pm_admin_token";
 
 async function api(path, options = {}) {
-  const res = await fetch(API + path, {
+  const res = await fetch(API_BASE + path, {
     headers: { "Content-Type": "application/json", ...(options.headers || {}) },
     ...options
   });
