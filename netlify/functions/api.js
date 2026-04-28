@@ -577,6 +577,28 @@ exports.handler = async (event) => {
       return json(200, { requests: data || [] });
     }
 
+    // ADMIN: get recharge receipt image by request id
+    if (method === "GET" && path.startsWith("/admin/recharge-requests/") && path.endsWith("/receipt")) {
+      const authUser = parseToken(event);
+      if (authUser.role !== "admin") return json(403, { error: "Yalniz admin" });
+
+      const idRaw = path.replace("/admin/recharge-requests/", "").replace("/receipt", "");
+      const id = Number(idRaw);
+      if (!id) return json(400, { error: "Yanlis request ID" });
+
+      const { data: reqRow, error } = await supabase
+        .from("recharge_requests")
+        .select("id,user_id,receipt_url,created_at,status")
+        .eq("id", id)
+        .maybeSingle();
+
+      if (error) return json(500, { error: "Qebz alinmadi" });
+      if (!reqRow) return json(404, { error: "Sorqu tapilmadi" });
+      if (!reqRow.receipt_url) return json(404, { error: "Qebz sekli yoxdur" });
+
+      return json(200, { request: reqRow });
+    }
+
     // ADMIN: approve/reject recharge request (+20% referral bonus)
     if (method === "PATCH" && path.startsWith("/admin/recharge-requests/")) {
       const authUser = parseToken(event);

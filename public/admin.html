@@ -119,6 +119,15 @@
       <div id="profileContent" class="p-4 text-sm text-slate-700">Yuklenir...</div>
     </div>
   </section>
+  <section id="receiptModal" class="fixed inset-0 bg-black/60 hidden items-center justify-center p-4 z-50">
+    <div class="bg-white w-full max-w-3xl rounded-2xl shadow-2xl max-h-[90vh] overflow-auto">
+      <div class="sticky top-0 bg-white border-b p-4 flex items-center justify-between">
+        <h3 class="text-xl font-bold">Qebz sekli</h3>
+        <button id="closeReceiptModalBtn" class="px-3 py-1 rounded bg-slate-200">Bagla</button>
+      </div>
+      <div id="receiptContent" class="p-4 text-sm text-slate-700">Yuklenir...</div>
+    </div>
+  </section>
 
   <script>
     let cacheUsers = [];
@@ -438,6 +447,7 @@
             <div class="sm:col-span-2"><b>Yaranma:</b> ${fmtDate(r.created_at)}</div>
           </div>
           <div class="mt-3 flex gap-2 ${r.status === "pending" ? "" : "hidden"}">
+            <button onclick="viewRechargeReceipt(${r.id})" class="bg-slate-700 text-white rounded px-3 py-1">Qebze bax</button>
             <button onclick="reviewRecharge(${r.id}, 'approve')" class="bg-green-600 text-white rounded px-3 py-1">Approve</button>
             <button onclick="reviewRecharge(${r.id}, 'reject')" class="bg-red-600 text-white rounded px-3 py-1">Reject</button>
           </div>
@@ -465,6 +475,42 @@
       } catch (e) {
         alert(e.message || "Xəta");
       }
+    }
+
+    async function viewRechargeReceipt(id) {
+      try {
+        const token = getAdminToken();
+        if (!token) throw new Error("Admin token yoxdur");
+
+        const modal = document.getElementById("receiptModal");
+        const content = document.getElementById("receiptContent");
+        content.innerHTML = "Yuklenir...";
+        modal.classList.remove("hidden");
+        modal.classList.add("flex");
+
+        const res = await fetch(`/.netlify/functions/api/admin/recharge-requests/${id}/receipt`, {
+          headers: { Authorization: "Bearer " + token }
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.error || "Qebz yuklenmedi");
+
+        const req = data.request || {};
+        content.innerHTML = `
+          <div class="mb-2 text-sm">
+            <b>ID:</b> ${req.id} | <b>User:</b> ${esc(req.user_id)} | <b>Status:</b> ${esc(req.status)}
+          </div>
+          <img src="${esc(req.receipt_url)}" alt="Qebz" class="max-h-[70vh] w-auto rounded border mx-auto" />
+        `;
+      } catch (e) {
+        const content = document.getElementById("receiptContent");
+        content.innerHTML = `<div class="text-red-600">${esc(e.message || "Xeta")}</div>`;
+      }
+    }
+
+    function closeReceiptModal() {
+      const modal = document.getElementById("receiptModal");
+      modal.classList.add("hidden");
+      modal.classList.remove("flex");
     }
 
     async function loadWithdrawRequests() {
@@ -653,6 +699,10 @@
     document.getElementById("closeProfileModalBtn").addEventListener("click", closeUserProfileModal);
     document.getElementById("profileModal").addEventListener("click", (e) => {
       if (e.target.id === "profileModal") closeUserProfileModal();
+    });
+    document.getElementById("closeReceiptModalBtn").addEventListener("click", closeReceiptModal);
+    document.getElementById("receiptModal").addEventListener("click", (e) => {
+      if (e.target.id === "receiptModal") closeReceiptModal();
     });
     document.getElementById("msgSendBtn").addEventListener("click", sendAdminMessage);
     document.getElementById("msgAdminInput").addEventListener("keydown", (e) => {
