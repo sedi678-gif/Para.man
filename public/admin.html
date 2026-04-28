@@ -586,8 +586,8 @@
       box.innerHTML = msgUsers.map(u => `
         <button onclick="openMsgThread('${esc(u.user_id)}')" class="w-full text-left border rounded-lg p-2 ${activeMsgUserId === u.user_id ? "bg-indigo-50 border-indigo-400" : "bg-white"}">
           <div class="font-semibold">${esc(u.user_id)}</div>
-          <div class="text-xs text-slate-500 truncate">${esc(u.last_message || "")}</div>
-          <div class="text-[11px] text-slate-400">${fmtDate(u.last_at)}</div>
+          <div class="text-xs text-slate-500 truncate">${esc(u.last_message || "Mesaj yoxdur - ilk mesaji siz yazin")}</div>
+          <div class="text-[11px] text-slate-400">${u.last_at ? fmtDate(u.last_at) : ""}</div>
         </button>
       `).join("");
     }
@@ -621,7 +621,28 @@
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error || "Mesaj user list alinmadi");
-      msgUsers = data.users || [];
+
+      const fromMessages = Array.isArray(data.users) ? data.users : [];
+      const msgMap = new Map(fromMessages.map((u) => [u.user_id, u]));
+      const allUsers = Array.isArray(cacheUsers) ? cacheUsers : [];
+
+      msgUsers = allUsers.map((u) => {
+        const hit = msgMap.get(u.user_id);
+        if (hit) return hit;
+        return {
+          user_id: u.user_id,
+          last_message: "",
+          last_at: ""
+        };
+      });
+
+      msgUsers.sort((a, b) => {
+        const ta = a.last_at ? new Date(a.last_at).getTime() : 0;
+        const tb = b.last_at ? new Date(b.last_at).getTime() : 0;
+        if (tb !== ta) return tb - ta;
+        return String(a.user_id).localeCompare(String(b.user_id));
+      });
+
       renderMsgUsers();
     }
 
